@@ -7,7 +7,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { FeatureCollection } from "geojson";
 import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { addMapLayers, bindMapInteractions, dimOtherCameras, SOURCE, STYLE_URLS, UTAH_CENTER } from "@/lib/mapLayers";
+import { appleStyle, BASE_STYLE_URL, type MapTheme } from "@/lib/appleStyle";
+import { addMapLayers, bindMapInteractions, dimOtherCameras, SOURCE, UTAH_CENTER } from "@/lib/mapLayers";
 import type { SearchOutcome } from "@/lib/search";
 import type { Camera, CameraCollection, LngLat } from "@/lib/types";
 
@@ -65,11 +66,12 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
   useEffect(() => {
     const map = new maplibregl.Map({
       container: containerRef.current!,
-      style: STYLE_URLS[window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"],
       center: UTAH_CENTER,
       zoom: 6,
       attributionControl: false,
     });
+    const theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    map.setStyle(BASE_STYLE_URL, { transformStyle: (_, next) => appleStyle(next, theme) });
     // The license needs attribution on the map; keep it to a small, faint ⓘ (see globals.css).
     map.addControl(new maplibregl.AttributionControl({ compact: true }), "top-right");
     // Hidden control that draws the blue location dot; our own button triggers it.
@@ -107,16 +109,16 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
     };
   }, []);
 
-  // Swap basemap with the device theme; style.load re-adds our layers.
-  const styleUrl = STYLE_URLS[dark ? "dark" : "light"];
-  const styleRef = useRef(styleUrl);
+  // Repaint the basemap with the device theme; style.load re-adds our layers.
+  const theme: MapTheme = dark ? "dark" : "light";
+  const themeRef = useRef(theme);
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || styleRef.current === styleUrl) return;
-    styleRef.current = styleUrl;
+    if (!map || themeRef.current === theme) return;
+    themeRef.current = theme;
     setLoaded(false);
-    map.setStyle(styleUrl);
-  }, [styleUrl]);
+    map.setStyle(BASE_STYLE_URL, { transformStyle: (_, next) => appleStyle(next, theme) });
+  }, [theme]);
 
   useEffect(() => {
     const map = mapRef.current;

@@ -1,3 +1,4 @@
+import { titleCaseAddress } from "./format";
 import type { GeocodeResult } from "./types";
 
 // Utah's state geocoder (UGRC): address points for nearly every Utah address, which
@@ -50,11 +51,11 @@ export function streetZoneCandidates(query: string): { street: string; zone: str
   return out;
 }
 
-// "1566 S 350 E, KAYSVILLE" -> "1566 S 350 E, Kaysville"
-export function ugrcLabel(matchAddress: string): string {
-  const [street, ...rest] = matchAddress.split(", ");
-  const place = rest.join(", ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
-  return place ? `${street}, ${place}, UT` : street;
+// UGRC's match names the address grid ("2350 W 4700 S, SALT LAKE CITY" for a
+// Taylorsville home), so the label uses its street with the city or ZIP as typed.
+export function ugrcLabel(matchAddress: string, zone: string): string {
+  const street = titleCaseAddress(matchAddress.split(", ")[0]);
+  return `${street}, ${titleCaseAddress(zone)}, UT`;
 }
 
 type UgrcResponse = {
@@ -75,7 +76,7 @@ export async function ugrcAddress(query: string, signal?: AbortSignal): Promise<
       const { result } = (await res.json()) as UgrcResponse;
       const { x, y } = result?.location ?? {};
       if (!result?.matchAddress || typeof x !== "number" || typeof y !== "number") return null;
-      return { score: result.score ?? 0, place: { label: ugrcLabel(result.matchAddress), lng: x, lat: y } };
+      return { score: result.score ?? 0, place: { label: ugrcLabel(result.matchAddress, zone), lng: x, lat: y } };
     } catch {
       return null;
     }

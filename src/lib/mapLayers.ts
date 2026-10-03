@@ -3,11 +3,6 @@ import type { GeoJSONSource, MapLayerMouseEvent } from "maplibre-gl";
 import type { FeatureCollection, Point } from "geojson";
 import type { Camera, LngLat } from "./types";
 
-// Muted basemaps (closest to Apple Maps); the dark one is used when the device is in dark mode.
-export const STYLE_URLS = {
-  light: "https://tiles.openfreemap.org/styles/positron",
-  dark: "https://tiles.openfreemap.org/styles/dark",
-};
 export const UTAH_CENTER: LngLat = [-111.6, 39.5];
 export const SOURCE = {
   cameras: "cameras",
@@ -27,6 +22,7 @@ export const COLORS = {
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
 const CONE_IMAGE = "camera-cone";
 const POINT_LAYERS = ["camera-points", "matched-points"];
+const TAP_SLOP = 22; // px around a tap that still hits a camera
 
 // A 60° wedge pointing up; rotated per camera by its `direction`.
 function coneImage(size = 64) {
@@ -190,27 +186,43 @@ export function dimOtherCameras(map: maplibregl.Map, dim: boolean): void {
 
 /** Clicks and cursors; bound once per map since handlers survive style changes. */
 export function bindMapInteractions(map: maplibregl.Map, onSelectCamera: (camera: Camera | null) => void): void {
-  map.on("click", "clusters", async (e: MapLayerMouseEvent) => {
-    const feature = e.features?.[0];
-    if (!feature) return;
-    const source = map.getSource(SOURCE.cameras) as GeoJSONSource;
-    const zoom = await source.getClusterExpansionZoom(feature.properties.cluster_id);
-    map.easeTo({ center: (feature.geometry as Point).coordinates as LngLat, zoom });
-  });
-
   map.on("click", (e) => {
-    const [feature] = map.queryRenderedFeatures(e.point, { layers: POINT_LAYERS.filter((id) => map.getLayer(id)) });
-    if (!feature) return onSelectCamera(null);
-    const props = feature.properties;
-    onSelectCamera({
-      type: "Feature",
-      geometry: { type: "Point", coordinates: (feature.geometry as Point).coordinates },
-      properties: {
-        id: Number(props.id),
-        direction: typeof props.direction === "number" ? props.direction : null,
-        operator: typeof props.operator === "string" && props.operator !== "null" ? props.operator : null,
-      },
-    });
+    // Cameras are small dots; take the nearest one within a fingertip of the tap.
+    const box: [maplibregl.PointLike, maplibregl.PointLike] = [
+      [e.point.x - TAP_SLOP, e.point.y - TAP_SLOP],
+      [e.point.x + TAP_SLOP, e.point.y + TAP_SLOP],
+    ];
+    const nearest = (layers: string[]) =>
+      map
+        .queryRenderedFeatures(box, { layers: layers.filter((id) => map.getLayer(id)) })
+        .map((f) => {
+          const p = map.project((f.geometry as Point).coordinates as LngLat);
+          return { f, d: Math.hypot(p.x - e.point.x, p.y - e.point.y) };
+        })
+        .sort((a, b) => a.d - b.d)[0]?.f;
+
+    const feature = nearest(POINT_LAYERS);
+    if (feature) {
+      const props = feature.properties;
+      return onSelectCamera({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: (feature.geometry as Point).coordinates },
+        properties: {
+          id: Number(props.id),
+          direction: typeof props.direction === "number" ? props.direction : null,
+          operator: typeof props.operator === "string" && props.operator !== "null" ? props.operator : null,
+        },
+      });
+    }
+    const cluster = nearest(["clusters"]);
+    if (cluster) {
+      const source = map.getSource(SOURCE.cameras) as GeoJSONSource;
+      source.getClusterExpansionZoom(cluster.properties.cluster_id).then((zoom) =>
+        map.easeTo({ center: (cluster.geometry as Point).coordinates as LngLat, zoom }),
+      );
+      return;
+    }
+    onSelectCamera(null);
   });
 
   for (const layer of ["clusters", ...POINT_LAYERS]) {

@@ -31,8 +31,9 @@ describe("streetZoneCandidates", () => {
 });
 
 describe("ugrcLabel", () => {
-  it("title-cases the city and adds the state", () => {
-    expect(ugrcLabel("1566 S 350 E, KAYSVILLE")).toBe("1566 S 350 E, Kaysville, UT");
-    expect(ugrcLabel("845 E 3900 S, SALT LAKE CITY")).toBe("845 E 3900 S, Salt Lake City, UT");
+  it("uses the typed city, not the address grid's", () => {
+    expect(ugrcLabel("2350 W 4700 S, SALT LAKE CITY", "taylorsville")).toBe("2350 W 4700 S, Taylorsville, UT");
+    expect(ugrcLabel("3848 HARRISON BLVD, OGDEN", "Ogden")).toBe("3848 Harrison Blvd, Ogden, UT");
+    expect(ugrcLabel("845 E 3900 S, SALT LAKE CITY", "84107")).toBe("845 E 3900 S, 84107, UT");
   });
 });

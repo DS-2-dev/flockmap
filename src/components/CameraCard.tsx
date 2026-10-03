@@ -17,7 +17,7 @@ export default function CameraCard({ camera, distanceMeters, onClose }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[13px] font-medium uppercase tracking-wide text-red-600 dark:text-red-400">ALPR camera</p>
-          <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">Flock license-plate reader</h2>
+          <h2 className="text-base text-neutral-900 dark:text-neutral-50">Flock license-plate reader</h2>
         </div>
         <button
           type="button"

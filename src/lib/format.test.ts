@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compassLabel, formatDistance } from "./format";
+import { compassLabel, formatDistance, titleCaseAddress } from "./format";
 
 describe("compassLabel", () => {
   it.each([
@@ -21,5 +21,12 @@ describe("formatDistance", () => {
 
   it("uses miles beyond that", () => {
     expect(formatDistance(1609.344 * 1.234)).toBe("1.2 mi");
+  });
+});
+
+describe("titleCaseAddress", () => {
+  it("title-cases words but keeps grid directions and the state", () => {
+    expect(titleCaseAddress("3848 HARRISON BLVD, OGDEN, UT, 84403")).toBe("3848 Harrison Blvd, Ogden, UT, 84403");
+    expect(titleCaseAddress("1566 S 350 E, KAYSVILLE")).toBe("1566 S 350 E, Kaysville");
   });
 });

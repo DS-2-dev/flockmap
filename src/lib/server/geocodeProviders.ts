@@ -1,3 +1,4 @@
+import { titleCaseAddress } from "../format";
 import type { GeocodeResult } from "../types";
 import type { Attempt } from "./fallback";
 
@@ -80,11 +81,9 @@ export function looksLikeStreetAddress(query: string): boolean {
   return /^\d+[a-z]?\s+\S/i.test(query.trim());
 }
 
-// "1566 S 350 E, KAYSVILLE, UT, 84037" -> "1566 S 350 E, Kaysville, UT, 84037"
+// "3848 HARRISON BLVD, OGDEN, UT, 84403" -> "3848 Harrison Blvd, Ogden, UT, 84403"
 export function censusLabel(matched: string): string {
-  const parts = matched.split(", ");
-  if (parts.length > 1) parts[1] = parts[1].toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
-  return parts.join(", ");
+  return titleCaseAddress(matched);
 }
 
 /**

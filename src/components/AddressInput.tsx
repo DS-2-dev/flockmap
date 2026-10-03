@@ -27,12 +27,14 @@ const MIN_QUERY_LENGTH = 3;
 // Matches the server cap in src/lib/server/limits.ts.
 const MAX_QUERY_LENGTH = 200;
 
-// Utah's exact address match goes first; other results at the same spot are dropped.
+// Utah's exact address match goes first; other results for the same address are dropped.
 const SAME_SPOT_DEG = 0.0007; // ~75 m
 function mergeExact(exact: GeocodeResult[], rest: GeocodeResult[]): GeocodeResult[] {
-  const near = (a: GeocodeResult, b: GeocodeResult) =>
-    Math.abs(a.lat - b.lat) < SAME_SPOT_DEG && Math.abs(a.lng - b.lng) < SAME_SPOT_DEG;
-  return [...exact, ...rest.filter((r) => !exact.some((e) => near(e, r)))];
+  const street = (r: GeocodeResult) => r.label.split(",")[0].toLowerCase().replace(/\s+/g, " ").trim();
+  const same = (a: GeocodeResult, b: GeocodeResult) =>
+    street(a) === street(b) ||
+    (Math.abs(a.lat - b.lat) < SAME_SPOT_DEG && Math.abs(a.lng - b.lng) < SAME_SPOT_DEG);
+  return [...exact, ...rest.filter((r) => !exact.some((e) => same(e, r)))];
 }
 
 // "123 Main Street, Sandy, Utah, 84070" -> ["123 Main Street", "Sandy, Utah, 84070"]

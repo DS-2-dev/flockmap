@@ -24,12 +24,12 @@ html {
 /* On the map, page background = basemap background (Safari falls back to it for its bars). */
 html:has(.map-page),
 html:has(.map-page) body {
-  background: #f2f3f0;
+  background: #f6f4ee;
 }
 @media (prefers-color-scheme: dark) {
   html:has(.map-page),
   html:has(.map-page) body {
-    background: #0c0c0c;
+    background: #212224;
   }
 }
 
