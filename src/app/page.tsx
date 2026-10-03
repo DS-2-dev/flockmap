@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import Collage from "@/components/Collage";
 
@@ -60,7 +61,10 @@ export default function Landing() {
     <main className="flex min-h-dvh flex-col justify-between bg-neutral-50 px-6 py-10 text-neutral-900 sm:px-12">
       <section className="my-auto grid items-center gap-10 xl:grid-cols-[auto_1fr]">
         <div>
-          <h1 className="font-display text-6xl leading-none sm:text-8xl">ALPR Atlas</h1>
+          <h1 className="flex items-center gap-3 font-display text-[clamp(2rem,11vw,2.75rem)] leading-none sm:gap-6 sm:text-8xl">
+            <Image src="/logo.png" alt="" width={512} height={512} priority className="size-11 sm:size-20" />
+            ALPR Atlas
+          </h1>
           <p className="mt-6 text-base sm:text-lg lg:whitespace-nowrap">
             Every known Flock license-plate camera in the US, and which ones are on your route.
           </p>

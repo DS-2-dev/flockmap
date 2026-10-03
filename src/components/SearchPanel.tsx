@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { MESSAGES, type SearchOutcome } from "@/lib/search";
 import { RADIUS_OPTIONS, type LngLat, type Place, type RadiusMiles } from "@/lib/types";
@@ -26,7 +27,10 @@ export default function SearchPanel(props: Props) {
   return (
     <section className="flex max-h-[60dvh] flex-col gap-3 overflow-y-auto rounded-lg bg-white p-4 shadow-xl sm:max-h-[calc(100dvh-2rem)]">
       <h1 className="font-display text-2xl leading-none">
-        <Link href="/">ALPR Atlas</Link>
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="" width={512} height={512} className="size-6" />
+          ALPR Atlas
+        </Link>
       </h1>
 
       {props.camerasFailed && (
