@@ -58,11 +58,11 @@ export default function Landing() {
   return (
     <main className="flex min-h-dvh flex-col justify-between bg-neutral-50 px-6 py-10 text-neutral-900 sm:px-12">
       <section className="my-auto max-w-3xl">
-        <h1 className="font-display text-6xl leading-none sm:text-8xl">Flock Map</h1>
+        <h1 className="font-display text-6xl leading-none sm:text-8xl">ALPR Atlas</h1>
         <p className="mt-6 text-base sm:text-lg">
           Every known Flock license-plate camera in the US, and which ones are on your route.{" "}
-          <Link href="/map" className="group underline underline-offset-4">
-            Open the map{" "}
+          <Link href="/map" className="group whitespace-nowrap">
+            <span className="underline underline-offset-4">Open the map</span>{" "}
             <span className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
               →
             </span>

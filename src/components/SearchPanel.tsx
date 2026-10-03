@@ -26,7 +26,7 @@ export default function SearchPanel(props: Props) {
   return (
     <section className="flex max-h-[60dvh] flex-col gap-3 overflow-y-auto rounded-lg bg-white p-4 shadow-xl sm:max-h-[calc(100dvh-2rem)]">
       <h1 className="font-display text-2xl leading-none">
-        <Link href="/">Flock Map</Link>
+        <Link href="/">ALPR Atlas</Link>
       </h1>
 
       {props.camerasFailed && (

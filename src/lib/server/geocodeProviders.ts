@@ -18,7 +18,7 @@ type NominatimResponse = Array<{ display_name?: string; lat?: string; lon?: stri
 const MAX_RESULTS = 5;
 // Bias suggestions toward Salt Lake City.
 const BIAS = { lat: 40.76, lon: -111.89 };
-const USER_AGENT = "flockmap/1.0 (school project)";
+const USER_AGENT = "alpr-atlas/1.0 (school project)";
 
 export function photonLabel(p: PhotonProps): string {
   const streetLine = [p.housenumber, p.street].filter(Boolean).join(" ");

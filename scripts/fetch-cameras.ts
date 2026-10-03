@@ -27,7 +27,7 @@ async function queryOverpass(endpoint: string): Promise<OverpassResponse> {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "flockmap/1.0 (school project)",
+      "User-Agent": "alpr-atlas/1.0 (school project)",
     },
     body: new URLSearchParams({ data: QUERY }),
     signal: AbortSignal.timeout(330_000),

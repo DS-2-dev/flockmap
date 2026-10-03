@@ -1,4 +1,4 @@
-# FlockMap
+# ALPR Atlas
 
 Interactive map of Flock Safety license plate cameras across the US (Utah-first), with:
 

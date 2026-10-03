@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Flock Map",
+  title: "ALPR Atlas",
   description: "Every known Flock license-plate camera in the US, and which ones are on your route.",
 };
 
