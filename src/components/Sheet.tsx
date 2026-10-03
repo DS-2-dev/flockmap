@@ -119,7 +119,7 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
 
   return (
     <section
-      className="glass fixed inset-x-2 flex flex-col overflow-hidden rounded-[28px]"
+      className="glass absolute inset-x-2 flex flex-col overflow-hidden rounded-[28px]"
       style={{
         bottom: `max(${EDGE}px, env(safe-area-inset-bottom))`,
         height: heights.full,
@@ -143,10 +143,11 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
       </div>
       <div
         ref={contentRef}
-        className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-6"
-        style={{ maxHeight: Math.max(0, visible - HANDLE - headerHeight) }}
+        className="min-h-0 overflow-y-auto overscroll-contain px-4"
+        // Nothing of the content peeks out under the search bar when collapsed.
+        style={{ maxHeight: Math.max(0, visible - HANDLE - headerHeight - EDGE) }}
       >
-        {children}
+        <div className="pb-6">{children}</div>
       </div>
     </section>
   );

@@ -93,9 +93,9 @@ export function addMapLayers(map: maplibregl.Map): void {
     paint: {
       "circle-color": COLORS.camera,
       "circle-opacity": 0.9,
-      "circle-radius": ["step", ["get", "point_count"], 12, 50, 15, 500, 19, 5000, 23],
+      "circle-radius": ["step", ["get", "point_count"], 10, 50, 13, 500, 16, 5000, 19],
       "circle-stroke-color": "#ffffff",
-      "circle-stroke-width": 2,
+      "circle-stroke-width": 1.5,
     },
   });
   map.addLayer({

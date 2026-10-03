@@ -21,6 +21,16 @@ html {
     background: #000;
   }
 }
+/* On the map, page background = basemap background, so Safari's bar tint matches. */
+html:has(.map-page) {
+  background: #f2f3f0;
+  overflow: hidden;
+}
+@media (prefers-color-scheme: dark) {
+  html:has(.map-page) {
+    background: #0c0c0c;
+  }
+}
 
 body {
   font-family: var(--font-sans);
@@ -28,14 +38,14 @@ body {
 
 /* Frosted glass surfaces for the map UI (search sheet, floating buttons). */
 @utility glass {
-  background-color: rgb(250 250 252 / 0.9);
+  background-color: rgb(250 250 252 / 0.94);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   box-shadow:
     0 0 0 0.5px rgb(0 0 0 / 0.08),
     0 8px 30px rgb(0 0 0 / 0.12);
   @media (prefers-color-scheme: dark) {
-    background-color: rgb(28 28 30 / 0.88);
+    background-color: rgb(28 28 30 / 0.94);
     box-shadow:
       0 0 0 0.5px rgb(255 255 255 / 0.1),
       0 8px 30px rgb(0 0 0 / 0.4);
@@ -52,10 +62,13 @@ body {
   top: calc(max(0.75rem, env(safe-area-inset-top)) + 96px);
 }
 .maplibregl-ctrl-attrib.maplibregl-compact {
-  opacity: 0.3;
+  opacity: 0.2;
+  transform: scale(0.7);
+  transform-origin: top right;
   background: transparent;
 }
 .maplibregl-ctrl-attrib.maplibregl-compact-show {
   opacity: 1;
+  transform: none;
   background: rgb(255 255 255 / 0.92);
 }

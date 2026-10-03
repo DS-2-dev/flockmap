@@ -72,9 +72,8 @@ export default function App() {
     : { top: 56, bottom: Math.min(sheetHeight, window.innerHeight * 0.6), left: 0, right: 0 };
 
   return (
-    // Fixed + large-viewport height so the map runs edge to edge behind iOS Safari's
-    // status bar and toolbar (viewport-fit=cover is set in layout.tsx).
-    <main className="fixed inset-x-0 top-0 h-lvh w-full overflow-hidden">
+    // Sized to the visible area; Safari's bars are tinted to match the map (map/layout.tsx).
+    <main className="relative h-dvh w-full overflow-hidden bg-[#f2f3f0] dark:bg-[#0c0c0c]">
       <MapView
         cameras={cameras}
         outcome={outcome}
