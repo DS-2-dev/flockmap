@@ -17,7 +17,9 @@ type Props = {
 };
 
 const EDGE = 8; // gap around the floating sheet, px
-const HANDLE = 20; // grab handle strip height, px
+const PILL = 48; // collapsed search pill height (40px field + 4px padding), px
+const MOTION_MS = 380;
+const EASE = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 const DRAG_THRESHOLD = 6; // px before a press on the header becomes a drag
 
 /**
@@ -47,7 +49,6 @@ function DesktopCard({ header, children, scrollKey }: Props) {
 function BottomSheet({ detent, onDetentChange, onHeightChange, header, children, scrollKey }: Props) {
   const headerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [headerHeight, setHeaderHeight] = useState(64);
   const [viewport, setViewport] = useState(() => window.innerHeight);
   const [dragVisible, setDragVisible] = useState<number | null>(null);
   const press = useRef<{ y: number; visible: number; dragging: boolean; lastY: number; lastT: number; v: number } | null>(
@@ -79,21 +80,23 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
   }, []);
 
   useEffect(() => {
-    const el = headerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(() => setHeaderHeight(el.offsetHeight));
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     contentRef.current?.scrollTo({ top: 0 });
   }, [scrollKey]);
 
-  // Collapsed, the sheet is just the floating search pill (no handle).
-  const pill = detent === "peek" && dragVisible === null;
+  // Collapsed, the sheet is just the floating search pill (no handle, no content).
+  // Opening shows the sheet's contents at once; closing keeps them until the sheet
+  // has shrunk into the pill, so it's one smooth motion either way.
+  const open = !(detent === "peek" && dragVisible === null);
+  const [pill, setPill] = useState(!open);
+  if (open && pill) setPill(false);
+  useEffect(() => {
+    if (open) return;
+    const timer = setTimeout(() => setPill(true), MOTION_MS);
+    return () => clearTimeout(timer);
+  }, [open]);
+
   const heights = {
-    peek: headerHeight + (pill ? 0 : HANDLE),
+    peek: PILL,
     half: Math.round(viewport * 0.5),
     full: viewport - 56 - EDGE * 2,
   };
@@ -145,18 +148,26 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
     onDetentChange(next);
   };
 
+  // Always anchored to the bottom (sliding the top), so nothing jumps between states.
+  const bottomGap = `max(${EDGE}px, env(safe-area-inset-bottom))`;
+  const position = underKeyboard
+    ? // Full with the keyboard up: top at the top of what's on screen, keyboard covers the rest.
+      { bottom: bottomGap, height: `calc(${window.innerHeight - keyboard.top - EDGE}px - ${bottomGap})` }
+    : keyboard
+      ? { bottom: window.innerHeight - keyboard.bottom + EDGE, height: visible }
+      : { bottom: bottomGap, height: visible };
+
   return (
     <section
       // Fixed so it stays above Safari's toolbar; Safari also tints the toolbar from it.
-      // The pill doesn't clip, so address suggestions can float above it.
-      className={`fixed inset-x-3 flex flex-col ${pill ? "glass rounded-full" : "glass-thick overflow-hidden rounded-[28px]"}`}
+      // At pill height the 28px corners round off fully, so the shape morphs smoothly.
+      className={`fixed inset-x-3 flex flex-col overflow-hidden rounded-[28px] ${pill ? "glass" : "glass-thick"}`}
       style={{
-        ...(underKeyboard
-          ? { top: keyboard.top + EDGE, height: window.innerHeight - keyboard.top - EDGE * 2 }
-          : keyboard
-            ? { top: keyboard.bottom - EDGE - visible, height: visible }
-            : { bottom: `max(${EDGE}px, env(safe-area-inset-bottom))`, height: visible }),
-        transition: dragVisible === null ? "height 320ms cubic-bezier(0.2, 0.8, 0.2, 1)" : "none",
+        ...position,
+        transition:
+          dragVisible === null
+            ? `height ${MOTION_MS}ms ${EASE}, bottom ${MOTION_MS}ms ${EASE}, background-color ${MOTION_MS}ms ease`
+            : "none",
       }}
     >
       <div
@@ -166,12 +177,17 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        {!pill && (
-          <div className="flex h-5 items-center justify-center">
-            <div className="h-1.5 w-10 rounded-full bg-black/20 dark:bg-white/25" />
-          </div>
-        )}
-        <div ref={headerRef} className={pill ? "px-1 py-1" : "px-3 pb-2"}>
+        <div
+          className={`flex items-center justify-center overflow-hidden transition-[height,opacity] duration-300 ${
+            open ? "h-5 opacity-100" : "h-0 opacity-0"
+          }`}
+        >
+          <div className="h-1.5 w-10 rounded-full bg-black/20 dark:bg-white/25" />
+        </div>
+        <div
+          ref={headerRef}
+          className={`transition-[padding] duration-300 ${open ? "px-3 pb-2 pt-0" : "px-1 py-1"}`}
+        >
           {typeof header === "function" ? header(pill) : header}
         </div>
       </div>

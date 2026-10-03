@@ -1,5 +1,5 @@
 import type * as maplibregl from "maplibre-gl";
-import type { GeoJSONSource, MapLayerMouseEvent } from "maplibre-gl";
+import type { GeoJSONSource } from "maplibre-gl";
 import type { FeatureCollection, Point } from "geojson";
 import type { Camera, LngLat } from "./types";
 

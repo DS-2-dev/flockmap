@@ -117,3 +117,10 @@ body {
     background-color: rgb(28 28 30 / 0.94);
   }
 }
+
+/* Landing page collage: each new shot fades in over the last (Collage.tsx). */
+@keyframes collage-fade {
+  from {
+    opacity: 0;
+  }
+}

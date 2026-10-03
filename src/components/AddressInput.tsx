@@ -139,7 +139,7 @@ export default function AddressInput({
   return (
     <div className="relative min-w-0 flex-1">
       <div
-        className={`flex h-10 items-center gap-2 px-3 ${bare ? "" : "rounded-full bg-black/[0.06] dark:bg-white/10"}`}
+        className={`flex h-10 items-center gap-2 rounded-full px-3 transition-colors duration-300 ${bare ? "bg-transparent" : "bg-black/[0.06] dark:bg-white/10"}`}
       >
         <svg viewBox="0 0 24 24" className="size-[18px] shrink-0 text-neutral-500" aria-hidden="true">
           {icon === "search" ? (
