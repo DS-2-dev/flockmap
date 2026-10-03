@@ -65,3 +65,34 @@ describe("camerasNearPoint", () => {
     expect(ids(camerasNearPoint([-111.9, 40.7], cameras))).toEqual([1]);
   });
 });
+
+describe("camerasNearRoute on long routes", () => {
+  // Deterministic pseudo-random numbers so the test is repeatable.
+  let seed = 42;
+  const rand = () => ((seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31);
+
+  // ~1,100 km route with 6,000 vertices, roughly SLC → LA.
+  const N = 6000;
+  const long: LineString = {
+    type: "LineString",
+    coordinates: Array.from({ length: N }, (_, i) => [-111.9 - (6.3 * i) / (N - 1), 40.76 - (6.7 * i) / (N - 1)]),
+  };
+  // 100k cameras scattered inside the route's bounding box, the worst case for a single-bbox prefilter.
+  const many = fc(
+    ...Array.from({ length: 100_000 }, (_, i) => cam(i, -118.2 + rand() * 6.3, 34.06 + rand() * 6.7)),
+  );
+
+  it("matches 100k cameras against a 6,000-vertex route in under a second", () => {
+    const start = performance.now();
+    camerasNearRoute(long, many);
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+
+  it("finds cameras on every part of a multi-chunk route, in driving order", () => {
+    const [lng0, lat0] = long.coordinates[10];
+    const [lng1, lat1] = long.coordinates[3000];
+    const [lng2, lat2] = long.coordinates[5990];
+    const cameras = fc(cam(3, lng2, lat2 + degNorth(20)), cam(1, lng0, lat0 + degNorth(20)), cam(2, lng1, lat1));
+    expect(ids(camerasNearRoute(long, cameras))).toEqual([1, 2, 3]);
+  });
+});
