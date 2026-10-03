@@ -7,19 +7,19 @@ type Props = {
   className?: string;
   /** Turn continuously (skipped for visitors who prefer reduced motion). */
   spinning?: boolean;
-  /** Fill behind the star glint; should match the background the logo sits on. */
-  background?: string;
 };
 
 const PERIOD_MS = 14_000;
 const REST_SPIN = 0.35;
 const STROKE = 0.055;
+// Orange from the collage stills.
+const STAR_COLOR = "#f7931e";
 
-// Four-point star from the logo artwork, kept still as a glint on the front of the globe.
+// Solid four-point star from the logo artwork, kept still as a glint on the front of the globe.
 const STAR = "M-0.44 -0.66 Q-0.47 -0.3 -0.9 -0.3 Q-0.47 -0.3 -0.64 0.09 Q-0.47 -0.3 -0.1 -0.28 Q-0.47 -0.3 -0.44 -0.66 Z";
 
 // SVG version of the globe logo whose grid rotates like a real globe.
-export default function GlobeLogo({ className, spinning = false, background = "#fafafa" }: Props) {
+export default function GlobeLogo({ className, spinning = false }: Props) {
   const frontRefs = useRef<(SVGPathElement | null)[]>([]);
   const backRefs = useRef<(SVGPathElement | null)[]>([]);
   const initial = globeLines(REST_SPIN);
@@ -59,7 +59,7 @@ export default function GlobeLogo({ className, spinning = false, background = "#
       {initial.map(({ front }, i) => (
         <path key={i} ref={(el) => void (frontRefs.current[i] = el)} d={front} />
       ))}
-      <path d={STAR} fill={background} />
+      <path d={STAR} fill={STAR_COLOR} stroke={STAR_COLOR} />
       <circle r={1} />
     </svg>
   );

@@ -28,7 +28,7 @@ export default function SearchPanel(props: Props) {
     <section className="flex max-h-[60dvh] flex-col gap-3 overflow-y-auto rounded-lg bg-white p-4 shadow-xl sm:max-h-[calc(100dvh-2rem)]">
       <h1 className="font-display text-2xl leading-none">
         <Link href="/" className="flex items-center gap-2">
-          <GlobeLogo background="#ffffff" className="size-6" />
+          <GlobeLogo className="size-6" />
           ALPR Atlas
         </Link>
       </h1>
