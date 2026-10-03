@@ -20,8 +20,12 @@ const MAX_QUERY_LENGTH = 200;
 export default function AddressInput({ label, placeholder, value, onChange }: Props) {
   const id = useId();
   const [text, setText] = useState(value?.label ?? "");
-  const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
-  const [message, setMessage] = useState<string | null>(null);
+  // Results remember the query they answer, so stale ones are never shown or picked.
+  const [results, setResults] = useState<{ query: string; items: GeocodeResult[]; message: string | null }>({
+    query: "",
+    items: [],
+    message: null,
+  });
   const [open, setOpen] = useState(false);
   const query = useDebounced(text.trim(), 300);
 
@@ -32,12 +36,10 @@ export default function AddressInput({ label, placeholder, value, onChange }: Pr
     fetchSuggestions(query, controller.signal).then((res) => {
       if (controller.signal.aborted) return;
       if (!res.ok) {
-        setSuggestions([]);
-        setMessage(MESSAGES.geocodingBusy);
+        setResults({ query, items: [], message: MESSAGES.geocodingBusy });
         return;
       }
-      setSuggestions(res.data);
-      setMessage(res.data.length ? null : MESSAGES.notFound);
+      setResults({ query, items: res.data, message: res.data.length ? null : MESSAGES.notFound });
       setOpen(true);
     });
     return () => controller.abort();
@@ -48,7 +50,10 @@ export default function AddressInput({ label, placeholder, value, onChange }: Pr
     onChange({ label: s.label, lngLat: [s.lng, s.lat] });
   };
 
-  const showList = open && text.trim().length >= MIN_QUERY_LENGTH && suggestions.length > 0;
+  const current = results.query === text.trim();
+  const suggestions = current ? results.items : [];
+  const message = current ? results.message : null;
+  const showList = open && suggestions.length > 0;
 
   return (
     <div className="relative">
@@ -70,7 +75,7 @@ export default function AddressInput({ label, placeholder, value, onChange }: Pr
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && suggestions[0]) select(suggestions[0]);
+          if (e.key === "Enter" && showList) select(suggestions[0]);
           if (e.key === "Escape") setOpen(false);
         }}
         className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
