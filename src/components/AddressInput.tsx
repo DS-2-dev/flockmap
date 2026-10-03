@@ -14,6 +14,8 @@ type Props = {
 };
 
 const MIN_QUERY_LENGTH = 3;
+// Matches the server cap in src/lib/server/limits.ts.
+const MAX_QUERY_LENGTH = 200;
 
 export default function AddressInput({ label, placeholder, value, onChange }: Props) {
   const id = useId();
@@ -57,6 +59,7 @@ export default function AddressInput({ label, placeholder, value, onChange }: Pr
         id={id}
         type="text"
         autoComplete="off"
+        maxLength={MAX_QUERY_LENGTH}
         placeholder={placeholder}
         value={text}
         onChange={(e) => {

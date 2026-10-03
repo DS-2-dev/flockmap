@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { parseLngLat } from "@/lib/lngLat";
 import { tryInOrder } from "@/lib/server/fallback";
+import { checkRouteRequest } from "@/lib/server/limits";
 import { routeAttempts } from "@/lib/server/routeProviders";
 import type { RouteResult } from "@/lib/types";
 
@@ -13,6 +14,8 @@ export async function GET(request: NextRequest) {
   const from = parseLngLat(request.nextUrl.searchParams.get("from"));
   const to = parseLngLat(request.nextUrl.searchParams.get("to"));
   if (!from || !to) return Response.json({ error: "bad_request" }, { status: 400 });
+  const check = checkRouteRequest(from, to);
+  if (check !== "ok") return Response.json({ error: check }, { status: 400 });
 
   try {
     const { value, provider } = await tryInOrder(
