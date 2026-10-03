@@ -3,17 +3,6 @@
 @theme {
   --font-display: "t26-carbon", ui-monospace, monospace;
   --font-sans: "host-grotesk", ui-sans-serif, system-ui, sans-serif;
-
-  /* Logo turns on its vertical axis like a globe. */
-  --animate-globe-turn: globe-turn 6s linear infinite;
-  @keyframes globe-turn {
-    from {
-      transform: perspective(600px) rotateY(0deg);
-    }
-    to {
-      transform: perspective(600px) rotateY(360deg);
-    }
-  }
 }
 
 html,
