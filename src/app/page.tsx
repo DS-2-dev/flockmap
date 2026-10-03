@@ -61,7 +61,7 @@ export default function Landing() {
     <main className="flex min-h-dvh flex-col justify-between bg-neutral-50 px-6 py-10 text-neutral-900 sm:px-12">
       <section className="my-auto flex flex-col gap-8">
         <h1 className="flex items-center gap-3 font-display text-[clamp(2rem,11vw,2.75rem)] leading-none sm:gap-6 sm:text-8xl">
-          <Image src="/logo.png" alt="" width={512} height={512} priority className="size-11 sm:size-20" />
+          <Image src="/logo.png" alt="" width={512} height={512} priority className="size-11 motion-safe:animate-globe-turn sm:size-20" />
           ALPR Atlas
         </h1>
         <Collage />
