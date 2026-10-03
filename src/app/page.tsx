@@ -59,13 +59,14 @@ const CITATIONS = [
 export default function Landing() {
   return (
     <main className="flex min-h-dvh flex-col justify-between bg-neutral-50 px-6 py-10 text-neutral-900 sm:px-12">
-      <section className="my-auto grid items-center gap-10 xl:grid-cols-[auto_1fr]">
+      <section className="my-auto flex flex-col gap-8">
+        <h1 className="flex items-center gap-3 font-display text-[clamp(2rem,11vw,2.75rem)] leading-none sm:gap-6 sm:text-8xl">
+          <Image src="/logo.png" alt="" width={512} height={512} priority className="size-11 sm:size-20" />
+          ALPR Atlas
+        </h1>
+        <Collage />
         <div>
-          <h1 className="flex items-center gap-3 font-display text-[clamp(2rem,11vw,2.75rem)] leading-none sm:gap-6 sm:text-8xl">
-            <Image src="/logo.png" alt="" width={512} height={512} priority className="size-11 sm:size-20" />
-            ALPR Atlas
-          </h1>
-          <p className="mt-6 text-base sm:text-lg lg:whitespace-nowrap">
+          <p className="text-base sm:text-lg lg:whitespace-nowrap">
             Every known Flock license-plate camera in the US, and which ones are on your route.
           </p>
           <Link href="/map" className="group mt-3 inline-block text-base sm:text-lg">
@@ -75,7 +76,6 @@ export default function Landing() {
             </span>
           </Link>
         </div>
-        <Collage />
       </section>
 
       <footer className="mt-12 max-w-3xl space-y-1 text-[11px] leading-relaxed text-neutral-500">

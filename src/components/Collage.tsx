@@ -20,7 +20,7 @@ export default function Collage() {
   }, []);
 
   return (
-    <div aria-hidden="true" className="grid max-w-2xl grid-cols-3 gap-1 xl:max-w-none">
+    <div aria-hidden="true" className="grid max-w-3xl grid-cols-3 gap-1">
       {collage.showing.map((shot, tile) => (
         <Image
           key={tile}
