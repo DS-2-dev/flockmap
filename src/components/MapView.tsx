@@ -16,7 +16,12 @@ type MapViewProps = { cameras: CameraCollection | null; outcome: SearchOutcome; 
 maplibregl.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
-const FIT_PADDING = { top: 60, bottom: 60, left: 60, right: 60 };
+// On phones the search panel covers the top ~60% of the map (see SearchPanel max-h).
+function fitPadding(map: maplibregl.Map) {
+  const { clientWidth, clientHeight } = map.getContainer();
+  const top = clientWidth < 640 ? Math.round(clientHeight * 0.6) + 24 : 60;
+  return { top, bottom: 60, left: 60, right: 60 };
+}
 
 export default function MapView({ cameras, outcome, focus }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,8 +35,8 @@ export default function MapView({ cameras, outcome, focus }: MapViewProps) {
       center: UTAH_CENTER,
       zoom: 6,
     });
-    map.addControl(new maplibregl.NavigationControl(), "top-right");
-    map.addControl(new maplibregl.GeolocateControl({}), "top-right");
+    map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+    map.addControl(new maplibregl.GeolocateControl({}), "bottom-right");
     map.on("load", () => {
       addMapLayers(map);
       setLoaded(true);
@@ -68,12 +73,12 @@ export default function MapView({ cameras, outcome, focus }: MapViewProps) {
       };
       set(SOURCE.route, routeFc);
       set(SOURCE.area, EMPTY);
-      map.fitBounds(bbox(routeFc) as [number, number, number, number], { padding: FIT_PADDING });
+      map.fitBounds(bbox(routeFc) as [number, number, number, number], { padding: fitPadding(map) });
     } else if (outcome.mode === "radius") {
       const area = circle(outcome.center, outcome.radiusMiles, { units: "miles", steps: 64 });
       set(SOURCE.route, EMPTY);
       set(SOURCE.area, { type: "FeatureCollection", features: [area] });
-      map.fitBounds(bbox(area) as [number, number, number, number], { padding: FIT_PADDING });
+      map.fitBounds(bbox(area) as [number, number, number, number], { padding: fitPadding(map) });
     } else {
       set(SOURCE.route, EMPTY);
       set(SOURCE.area, EMPTY);
