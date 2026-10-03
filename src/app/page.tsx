@@ -61,8 +61,11 @@ export default function Landing() {
         <h1 className="font-display text-6xl leading-none sm:text-8xl">Flock Map</h1>
         <p className="mt-6 text-base sm:text-lg">
           Every known Flock license-plate camera in the US, and which ones are on your route.{" "}
-          <Link href="/map" className="underline underline-offset-4">
-            Open the map →
+          <Link href="/map" className="group underline underline-offset-4">
+            Open the map{" "}
+            <span className="inline-block transition-transform duration-200 ease-out group-hover:translate-x-1.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0">
+              →
+            </span>
           </Link>
         </p>
       </section>
