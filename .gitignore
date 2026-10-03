@@ -42,3 +42,6 @@ next-env.d.ts
 
 # superpowers workspace
 /.superpowers
+
+# copied from node_modules by scripts/copy-maplibre-worker.mjs
+/public/maplibre
