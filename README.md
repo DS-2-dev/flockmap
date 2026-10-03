@@ -13,7 +13,7 @@ Camera data is crowdsourced via [DeFlock](https://deflock.me) / OpenStreetMap an
 ```bash
 npm install
 cp .env.example .env.local   # optionally add ORS_API_KEY
-npm run dev                  # http://localhost:3000
+npm run dev                  # http://localhost:3000 (map at /map)
 ```
 
 ## Scripts

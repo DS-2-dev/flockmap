@@ -1,10 +1,77 @@
-"use client";
+import Link from "next/link";
 
-import dynamic from "next/dynamic";
+const CITATIONS = [
+  <>
+    Camera locations ©{" "}
+    <a href="https://www.openstreetmap.org/copyright" className="underline">
+      OpenStreetMap contributors
+    </a>{" "}
+    (ODbL), mapped largely via{" "}
+    <a href="https://deflock.me" className="underline">
+      DeFlock
+    </a>
+    .
+  </>,
+  <>
+    Map tiles by{" "}
+    <a href="https://openfreemap.org" className="underline">
+      OpenFreeMap
+    </a>{" "}
+    ©{" "}
+    <a href="https://openmaptiles.org" className="underline">
+      OpenMapTiles
+    </a>
+    ; rendered with{" "}
+    <a href="https://maplibre.org" className="underline">
+      MapLibre GL JS
+    </a>
+    .
+  </>,
+  <>
+    Address search by{" "}
+    <a href="https://photon.komoot.io" className="underline">
+      Photon
+    </a>{" "}
+    and{" "}
+    <a href="https://nominatim.org" className="underline">
+      Nominatim
+    </a>
+    . Routing by{" "}
+    <a href="https://project-osrm.org" className="underline">
+      OSRM
+    </a>
+    ,{" "}
+    <a href="https://valhalla.github.io/valhalla/" className="underline">
+      Valhalla
+    </a>{" "}
+    (FOSSGIS) and{" "}
+    <a href="https://openrouteservice.org" className="underline">
+      openrouteservice
+    </a>
+    .
+  </>,
+  <>Camera data is crowdsourced and incomplete — not every camera is mapped.</>,
+  <>Not affiliated with Flock Safety.</>,
+];
 
-// Map and URL state need the browser; skip server rendering for the app shell.
-const App = dynamic(() => import("@/components/App"), { ssr: false });
+export default function Landing() {
+  return (
+    <main className="flex min-h-dvh flex-col justify-between bg-neutral-50 px-6 py-10 text-neutral-900 sm:px-12">
+      <section className="my-auto max-w-3xl">
+        <h1 className="font-display text-6xl leading-none sm:text-8xl">Flock Map</h1>
+        <p className="mt-6 text-base sm:text-lg">
+          Every known Flock license-plate camera in the US, and which ones are on your route.{" "}
+          <Link href="/map" className="underline underline-offset-4">
+            Open the map →
+          </Link>
+        </p>
+      </section>
 
-export default function Page() {
-  return <App />;
+      <footer className="mt-12 max-w-3xl space-y-1 text-[11px] leading-relaxed text-neutral-500">
+        {CITATIONS.map((citation, i) => (
+          <p key={i}>{citation}</p>
+        ))}
+      </footer>
+    </main>
+  );
 }

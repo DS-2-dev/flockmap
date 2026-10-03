@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MESSAGES, type SearchOutcome } from "@/lib/search";
 import { RADIUS_OPTIONS, type LngLat, type Place, type RadiusMiles } from "@/lib/types";
 import AddressInput from "./AddressInput";
@@ -24,7 +25,9 @@ export default function SearchPanel(props: Props) {
 
   return (
     <section className="flex max-h-[60dvh] flex-col gap-3 overflow-y-auto rounded-lg bg-white p-4 shadow-xl sm:max-h-[calc(100dvh-2rem)]">
-      <h1 className="text-lg font-bold">FlockMap</h1>
+      <h1 className="font-display text-2xl leading-none">
+        <Link href="/">Flock Map</Link>
+      </h1>
 
       {props.camerasFailed && (
         <div className="flex items-center justify-between rounded bg-red-50 px-3 py-2 text-sm text-red-700">

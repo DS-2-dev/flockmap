@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-@theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --font-display: "argent-pixel-cf", ui-monospace, monospace;
+  --font-mono: "t26-carbon", ui-monospace, monospace;
 }
 
 html,
@@ -12,5 +12,5 @@ body {
 }
 
 body {
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-mono);
 }
