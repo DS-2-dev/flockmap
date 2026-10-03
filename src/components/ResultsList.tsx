@@ -1,38 +1,57 @@
+import { formatDistance } from "@/lib/format";
 import { METERS_PER_MILE } from "@/lib/geo";
 import type { SearchOutcome } from "@/lib/search";
-import type { LngLat } from "@/lib/types";
+import type { Camera } from "@/lib/types";
 
-type Props = { outcome: SearchOutcome; onSelect: (lngLat: LngLat) => void };
+type Props = { outcome: SearchOutcome; selectedId: number | null; onSelect: (camera: Camera) => void };
 
 const plural = (n: number) => `${n} Flock camera${n === 1 ? "" : "s"}`;
 
-export default function ResultsList({ outcome, onSelect }: Props) {
+export default function ResultsList({ outcome, selectedId, onSelect }: Props) {
   if (outcome.mode !== "route" && outcome.mode !== "radius") return null;
 
   const heading =
     outcome.mode === "route"
-      ? `${plural(outcome.matches.length)} on this route (${(outcome.route.distanceMeters / METERS_PER_MILE).toFixed(1)} mi)`
+      ? `${plural(outcome.matches.length)} on this route`
       : `${plural(outcome.matches.length)} within ${outcome.radiusMiles} mi`;
+  const sub =
+    outcome.mode === "route"
+      ? `${(outcome.route.distanceMeters / METERS_PER_MILE).toFixed(1)} mi · ${Math.round(outcome.route.durationSeconds / 60)} min drive`
+      : null;
 
   return (
     <div>
-      <h2 className="mb-2 text-sm font-semibold">{heading}</h2>
-      <ol className="max-h-64 space-y-1 overflow-y-auto">
-        {outcome.matches.map(({ camera, distanceMeters }, i) => (
-          <li key={camera.properties.id}>
-            <button
-              type="button"
-              onClick={() => onSelect(camera.geometry.coordinates as LngLat)}
-              className="w-full rounded px-2 py-1 text-left text-sm hover:bg-neutral-100"
-            >
-              <span className="font-medium">#{i + 1}</span> · {camera.properties.operator ?? "Unknown operator"} ·{" "}
-              {outcome.mode === "route"
-                ? `${Math.round(distanceMeters)} m from route`
-                : `${(distanceMeters / METERS_PER_MILE).toFixed(2)} mi away`}
-            </button>
-          </li>
-        ))}
-      </ol>
+      <h2 className="text-[22px] font-bold leading-tight text-neutral-900 dark:text-neutral-50">{heading}</h2>
+      {sub && <p className="mt-0.5 text-[15px] text-neutral-500">{sub}</p>}
+      {outcome.matches.length > 0 && (
+        <ol className="mt-3 overflow-hidden rounded-2xl bg-white/80 dark:bg-white/[0.07]">
+          {outcome.matches.map(({ camera, distanceMeters }, i) => (
+            <li key={camera.properties.id} className="border-b border-black/5 last:border-0 dark:border-white/10">
+              <button
+                type="button"
+                onClick={() => onSelect(camera)}
+                className={`flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-black/5 dark:active:bg-white/10 ${
+                  camera.properties.id === selectedId ? "bg-black/[0.04] dark:bg-white/[0.06]" : ""
+                }`}
+              >
+                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-red-600 text-[13px] font-semibold text-white">
+                  {i + 1}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] text-neutral-900 dark:text-neutral-100">
+                    {camera.properties.operator ?? "Unknown operator"}
+                  </span>
+                  <span className="block text-[13px] text-neutral-500">
+                    {outcome.mode === "route"
+                      ? `${formatDistance(distanceMeters)} from route`
+                      : `${formatDistance(distanceMeters)} away`}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }

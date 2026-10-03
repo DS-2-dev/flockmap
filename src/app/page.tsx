@@ -58,10 +58,10 @@ const CITATIONS = [
 
 export default function Landing() {
   return (
-    <main className="flex min-h-dvh flex-col justify-between bg-neutral-50 px-6 py-10 text-neutral-900 sm:px-12">
+    <main className="flex min-h-dvh flex-col justify-between bg-neutral-50 px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,env(safe-area-inset-top))] text-neutral-900 sm:px-12 dark:bg-black dark:text-neutral-100">
       <section className="my-auto flex flex-col gap-8">
         <h1 className="flex items-center gap-3 font-display text-[clamp(2rem,11vw,2.75rem)] leading-none sm:gap-6 sm:text-8xl">
-          <Image src="/logo.png" alt="" width={512} height={512} priority className="size-11 shrink-0 sm:size-20" />
+          <Image src="/logo.png" alt="" width={512} height={512} priority className="size-11 shrink-0 sm:size-20 dark:invert" />
           ALPR Atlas
         </h1>
         <Collage />
@@ -78,7 +78,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="mt-12 max-w-3xl space-y-1 text-[11px] leading-relaxed text-neutral-500">
+      <footer className="mt-12 max-w-3xl space-y-1 text-[11px] leading-relaxed text-neutral-500 dark:text-neutral-400">
         {CITATIONS.map((citation, i) => (
           <p key={i}>{citation}</p>
         ))}

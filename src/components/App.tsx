@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCameras } from "@/hooks/useCameras";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { fetchRoute, type ApiResult } from "@/lib/api";
 import { formatLngLat } from "@/lib/lngLat";
 import { computeOutcome } from "@/lib/search";
-import type { LngLat, Place, RadiusMiles, RouteResult } from "@/lib/types";
+import type { Detent } from "@/lib/sheet";
+import type { Camera, LngLat, Place, RadiusMiles, RouteResult } from "@/lib/types";
 import { parseSearchState, serializeSearchState } from "@/lib/urlState";
 import MapView from "./MapView";
 import SearchPanel from "./SearchPanel";
@@ -19,6 +23,10 @@ export default function App() {
   const [to, setTo] = useState<Place | null>(() => initial().to);
   const [radiusMiles, setRadiusMiles] = useState<RadiusMiles>(() => initial().radiusMiles);
   const [focus, setFocus] = useState<LngLat | null>(null);
+  const [selected, setSelected] = useState<Camera | null>(null);
+  const [detent, setDetent] = useState<Detent>(() => (initial().from || initial().to ? "half" : "peek"));
+  const [sheetHeight, setSheetHeight] = useState(0);
+  const desktop = useMediaQuery("(min-width: 640px)");
   const [fetched, setFetched] = useState<{ key: string; result: ApiResult<RouteResult> } | null>(null);
 
   // The route depends only on the two places, so swapping camera data never refetches it.
@@ -44,23 +52,60 @@ export default function App() {
     window.history.replaceState(null, "", qs ? `?${qs}` : window.location.pathname);
   }, [from, to, radiusMiles]);
 
+  // Picking a place shows results at half height so the map stays visible.
+  const changePlace = (set: (p: Place | null) => void) => (place: Place | null) => {
+    set(place);
+    setSelected(null);
+    if (place) setDetent("half");
+  };
+
+  const selectCamera = useCallback((camera: Camera | null) => {
+    setSelected(camera);
+    if (!camera) return;
+    setFocus([...(camera.geometry.coordinates as LngLat)] as LngLat);
+    setDetent("half");
+  }, []);
+
+  // Keep fitted results clear of the floating card (desktop) or the sheet (phone).
+  const padding = desktop
+    ? { top: 0, bottom: 0, left: 400, right: 56 }
+    : { top: 56, bottom: Math.min(sheetHeight, window.innerHeight * 0.6), left: 0, right: 0 };
+
   return (
-    <main className="relative h-dvh w-full">
-      <MapView cameras={cameras} outcome={outcome} focus={focus} />
-      <div className="absolute left-0 right-0 top-0 p-4 sm:right-auto sm:w-96">
-        <SearchPanel
-          from={from}
-          to={to}
-          radiusMiles={radiusMiles}
-          onFromChange={setFrom}
-          onToChange={setTo}
-          onRadiusChange={setRadiusMiles}
-          outcome={outcome}
-          camerasFailed={failed}
-          onRetry={retry}
-          onSelectCamera={(lngLat) => setFocus([...lngLat] as LngLat)}
-        />
-      </div>
+    // Fixed + large-viewport height so the map runs edge to edge behind iOS Safari's
+    // status bar and toolbar (viewport-fit=cover is set in layout.tsx).
+    <main className="fixed inset-x-0 top-0 h-lvh w-full overflow-hidden">
+      <MapView
+        cameras={cameras}
+        outcome={outcome}
+        focus={focus}
+        selected={selected}
+        onSelectCamera={selectCamera}
+        padding={padding}
+      />
+      <Link
+        href="/"
+        aria-label="ALPR Atlas home"
+        className="glass absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] grid size-11 place-items-center rounded-2xl sm:hidden"
+      >
+        <Image src="/logo.png" alt="" width={512} height={512} className="size-7 dark:invert" />
+      </Link>
+      <SearchPanel
+        from={from}
+        to={to}
+        radiusMiles={radiusMiles}
+        onFromChange={changePlace(setFrom)}
+        onToChange={changePlace(setTo)}
+        onRadiusChange={setRadiusMiles}
+        outcome={outcome}
+        camerasFailed={failed}
+        onRetry={retry}
+        selected={selected}
+        onSelectCamera={selectCamera}
+        detent={detent}
+        onDetentChange={setDetent}
+        onSheetHeightChange={setSheetHeight}
+      />
     </main>
   );
 }
