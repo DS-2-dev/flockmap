@@ -7,7 +7,7 @@ import { COLLAGE_SHOTS, collageSrc, initialCollage, swapTile } from "@/lib/colla
 const TILES = 9;
 const SWAP_MS = 1500;
 
-// Grid of CCTV stills (from ggg.gif); every SWAP_MS one tile rotates to the next queued shot.
+// Grid of CCTV stills (one per shot of assets/collage-source.gif); every SWAP_MS one tile rotates to the next queued shot.
 export default function Collage() {
   const [collage, setCollage] = useState(() => initialCollage(TILES, COLLAGE_SHOTS));
 
@@ -20,7 +20,7 @@ export default function Collage() {
   }, []);
 
   return (
-    <div aria-hidden="true" className="grid grid-cols-3 gap-1">
+    <div aria-hidden="true" className="grid max-w-2xl grid-cols-3 gap-1 xl:max-w-none">
       {collage.showing.map((shot, tile) => (
         <Image
           key={tile}
