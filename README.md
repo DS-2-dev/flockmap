@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FlockMap
 
-## Getting Started
+Interactive map of Flock Safety license plate cameras across the US (Utah-first), with:
 
-First, run the development server:
+- **Route check:** enter a start and destination to see which cameras are along the drive.
+- **Address check:** enter one address to see cameras within ½, 1 or 5 miles.
+- **Shareable links:** every search is saved in the URL.
+
+Camera data is crowdsourced via [DeFlock](https://deflock.me) / OpenStreetMap and refreshed daily. Not every camera is mapped.
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # optionally add ORS_API_KEY
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm test` | Unit tests (Vitest) |
+| `npm run fetch-cameras` | Re-download camera data from Overpass into `public/data/` |
+| `npm run build` | Production build |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`dev` and `build` first copy MapLibre's web worker into `public/maplibre/` (see `scripts/copy-maplibre-worker.mjs`).
 
-## Learn More
+## Deploy (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
+1. Push this repo to GitHub.
+2. In Vercel: **Add New → Project → Import** the repo. Framework preset: Next.js.
+3. (Optional) **Settings → Environment Variables:** add `ORS_API_KEY`.
+4. Deploy. Every push to `main` redeploys.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The GitHub Action `.github/workflows/refresh-cameras.yml` refreshes camera data daily and commits it, which triggers a redeploy. Run it manually from the repo's **Actions** tab if needed.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## How it works
 
-## Deploy on Vercel
+- `scripts/fetch-cameras.ts` queries Overpass for `surveillance:type=ALPR` + Flock Safety nodes and writes `public/data/us.geojson` and `utah.geojson`.
+- The map loads Utah first, then the full US set, clustered with MapLibre.
+- `/api/geocode` (Photon → Nominatim) and `/api/route` (OpenRouteService → OSRM → Valhalla) fall back automatically and are cached at Vercel's edge for 24 h.
+- Cameras within 50 m of the route line count as "on the route".
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Data & services
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Map tiles © OpenFreeMap / OpenMapTiles, data © OpenStreetMap contributors. Geocoding by Photon (Komoot) and Nominatim. Routing by OpenRouteService, OSRM and Valhalla (FOSSGIS).
