@@ -48,7 +48,8 @@ export default function SearchPanel(props: Props) {
         placeholder="Search an address"
         value={from}
         onChange={props.onFromChange}
-        onFocus={expand}
+        // The bar stays a bar while typing; suggestions float above it.
+        onFocus={pill ? undefined : expand}
         bare={pill}
       />
       {!pill && (from || to) && (

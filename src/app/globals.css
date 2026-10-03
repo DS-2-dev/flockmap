@@ -39,14 +39,15 @@ body {
 
 /* Frosted glass surfaces for the map UI (search sheet, floating buttons). */
 @utility glass {
-  background-color: rgb(250 250 252 / 0.94);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  /* Tailwind's backdrop utilities emit both prefixed and standard properties
+     (a raw pair gets collapsed to the -webkit- one by the CSS minifier). */
+  @apply backdrop-blur-2xl backdrop-saturate-[1.8];
+  background-color: rgb(250 250 252 / 0.72);
   box-shadow:
     0 0 0 0.5px rgb(0 0 0 / 0.08),
     0 8px 30px rgb(0 0 0 / 0.12);
   @media (prefers-color-scheme: dark) {
-    background-color: rgb(28 28 30 / 0.94);
+    background-color: rgb(28 28 30 / 0.7);
     box-shadow:
       0 0 0 0.5px rgb(255 255 255 / 0.1),
       0 8px 30px rgb(0 0 0 / 0.4);
@@ -60,7 +61,7 @@ body {
 
 /* Required map attribution, kept to a small faint ⓘ under the map buttons. */
 .maplibregl-map .maplibregl-ctrl-top-right {
-  top: calc(max(0.75rem, env(safe-area-inset-top)) + 96px);
+  top: calc(var(--runway, 0px) + max(0.75rem, env(safe-area-inset-top)) + 96px);
 }
 .maplibregl-ctrl-attrib.maplibregl-compact {
   opacity: 0.2;

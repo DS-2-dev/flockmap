@@ -54,6 +54,20 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
     null,
   );
 
+  // Height of the on-screen keyboard (iOS), so the floating bar sits above it.
+  const [keyboard, setKeyboard] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setKeyboard(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
   useEffect(() => {
     const onResize = () => setViewport(window.innerHeight);
     window.addEventListener("resize", onResize);
@@ -123,9 +137,10 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
   return (
     <section
       // Fixed so it stays above Safari's toolbar; Safari also tints the toolbar from it.
-      className={`glass fixed inset-x-3 flex flex-col overflow-hidden ${pill ? "rounded-full" : "rounded-[28px]"}`}
+      // The pill doesn't clip, so address suggestions can float above it.
+      className={`glass fixed inset-x-3 flex flex-col ${pill ? "rounded-full" : "overflow-hidden rounded-[28px]"}`}
       style={{
-        bottom: `max(${EDGE}px, env(safe-area-inset-bottom))`,
+        bottom: keyboard > 0 ? keyboard + EDGE : `max(${EDGE}px, env(safe-area-inset-bottom))`,
         height: visible,
         transition: dragVisible === null ? "height 320ms cubic-bezier(0.2, 0.8, 0.2, 1)" : "none",
       }}

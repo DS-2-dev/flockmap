@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useCameras } from "@/hooks/useCameras";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { fetchRoute, type ApiResult } from "@/lib/api";
@@ -20,10 +20,11 @@ import { parseSearchState, serializeSearchState } from "@/lib/urlState";
 import MapView from "./MapView";
 import SearchPanel from "./SearchPanel";
 
-// Phones: a strip above the map that the page scrolls past on load. Safari 26+
-// only shows page content behind the status bar once the page is scrolled, so
-// this lets the map run under it (and the full-height map under the toolbar).
+// Phones: Safari 26+ only shows page content behind the status bar once the page
+// is scrolled, and only real pixels behind its toolbar. So the map is taller than
+// the screen (RUNWAY above, BLEED below) and the page scrolls past RUNWAY on load.
 const RUNWAY = 64;
+const BLEED = 136;
 
 // App is client-only (see page.tsx), so reading window here is safe.
 const initial = () =>
@@ -43,6 +44,17 @@ export default function App() {
   );
   const [sheetHeight, setSheetHeight] = useState(0);
   const desktop = useMediaQuery("(min-width: 640px)");
+  const mainRef = useRef<HTMLElement>(null);
+  // Map height hidden below the visible screen (phones), so fits keep results in view.
+  const [hiddenBelow, setHiddenBelow] = useState(0);
+
+  useEffect(() => {
+    const measure = () =>
+      setHiddenBelow(desktop || !mainRef.current ? 0 : mainRef.current.offsetHeight - RUNWAY - window.innerHeight);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [desktop]);
   const [fetched, setFetched] = useState<{
     key: string;
     result: ApiResult<RouteResult>;
@@ -102,16 +114,25 @@ export default function App() {
   const padding = desktop
     ? { top: 0, bottom: 0, left: 400, right: 56 }
     : {
-        top: 56,
-        bottom: Math.min(sheetHeight, window.innerHeight * 0.6),
+        top: RUNWAY + 56,
+        // Use the height the sheet is heading to (it animates), not the one measured now.
+        bottom: hiddenBelow + (detent === "peek" ? sheetHeight : window.innerHeight * 0.5),
         left: 0,
         right: 0,
       };
 
   return (
     <>
-      {!desktop && <div aria-hidden="true" style={{ height: RUNWAY }} />}
-      <main className="relative h-lvh w-full overflow-hidden sm:h-dvh">
+      <main
+        ref={mainRef}
+        className="relative w-full overflow-hidden"
+        // --runway offsets the floating controls below the strip that sits behind the status bar.
+        style={
+          (desktop
+            ? { height: "100dvh", "--runway": "0px" }
+            : { height: `calc(100lvh + ${RUNWAY + BLEED}px)`, "--runway": `${RUNWAY}px` }) as CSSProperties
+        }
+      >
         <MapView
           cameras={cameras}
           outcome={outcome}
@@ -123,7 +144,7 @@ export default function App() {
         <Link
           href="/"
           aria-label="ALPR Atlas home"
-          className="glass absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] grid size-11 place-items-center rounded-2xl sm:hidden"
+          className="glass absolute left-3 top-[calc(var(--runway)+max(0.75rem,env(safe-area-inset-top)))] grid size-11 place-items-center rounded-2xl sm:hidden"
         >
           <Image
             src="/logo.png"

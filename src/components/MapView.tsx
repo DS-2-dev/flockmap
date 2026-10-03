@@ -36,6 +36,7 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
   const fittedRef = useRef<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [bearing, setBearing] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
   const dark = useMediaQuery("(prefers-color-scheme: dark)");
 
   useEffect(() => {
@@ -58,6 +59,13 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
       trackUserLocation: true,
     });
     map.addControl(geolocate, "top-left");
+    geolocate.on("error", (e) =>
+      setNotice(
+        e.code === 1 // PERMISSION_DENIED
+          ? "Location is blocked. Allow it for this site in Settings › Apps › Safari › Location."
+          : "Couldn't get your location. Try again in a moment.",
+      ),
+    );
     geolocateRef.current = geolocate;
 
     bindMapInteractions(map, (camera) => onSelectRef.current(camera));
@@ -161,12 +169,35 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, focus]);
 
+  // Browsers only share location with https pages (the LAN dev URL is plain http).
+  const locate = () => {
+    if (!window.isSecureContext || !("geolocation" in navigator)) {
+      setNotice("Location needs a secure (https) connection. It works on the live site.");
+      return;
+    }
+    geolocateRef.current?.trigger();
+  };
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 4500);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
   return (
     <div className="relative h-full w-full">
+      {notice && (
+        <div
+          role="status"
+          className="glass absolute inset-x-16 top-[calc(var(--runway,0px)+max(0.75rem,env(safe-area-inset-top)))] z-10 rounded-2xl px-4 py-3 text-center text-[14px] text-neutral-900 sm:inset-x-auto sm:left-1/2 sm:w-96 sm:-translate-x-1/2 dark:text-neutral-100"
+        >
+          {notice}
+        </div>
+      )}
       <div ref={containerRef} className="h-full w-full" />
-      <div className="pointer-events-none absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] flex flex-col gap-2">
+      <div className="pointer-events-none absolute right-3 top-[calc(var(--runway,0px)+max(0.75rem,env(safe-area-inset-top)))] flex flex-col items-center gap-2">
         <div className="glass pointer-events-auto flex flex-col overflow-hidden rounded-2xl">
-          <MapButton label="Show my location" onClick={() => geolocateRef.current?.trigger()}>
+          <MapButton label="Show my location" onClick={locate}>
             <path d="M12 2 4 20l8-4 8 4z" transform="rotate(45 12 12)" />
           </MapButton>
           <div className="mx-2 h-px bg-black/10 dark:bg-white/15" />

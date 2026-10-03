@@ -13,7 +13,8 @@ type Props = {
   onChange: (place: Place | null) => void;
   onFocus?: () => void;
   icon?: "search" | "pin";
-  /** No filled background, for when the input itself is the floating search bar. */
+  /** The input is the floating search bar: no filled background, and suggestions
+   *  float above it as separate pills instead of a list below. */
   bare?: boolean;
 };
 
@@ -59,7 +60,7 @@ export default function AddressInput({ label, placeholder, value, onChange, onFo
   const showList = open && suggestions.length > 0;
 
   return (
-    <div>
+    <div className="relative">
       <div
         className={`flex h-11 items-center gap-2 px-3 ${bare ? "" : "rounded-xl bg-black/[0.06] dark:bg-white/10"}`}
       >
@@ -119,25 +120,50 @@ export default function AddressInput({ label, placeholder, value, onChange, onFo
           </button>
         )}
       </div>
-      {showList && (
-        <ul className="mt-2 overflow-hidden rounded-xl bg-white/70 dark:bg-white/5">
-          {suggestions.map((s) => (
-            <li key={`${s.lng},${s.lat},${s.label}`} className="border-b border-black/5 last:border-0 dark:border-white/10">
-              <button
-                type="button"
-                // mousedown fires before the input's blur closes the list
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  select(s);
-                }}
-                className="block w-full px-3 py-2.5 text-left text-[15px] text-neutral-900 active:bg-black/5 dark:text-neutral-100 dark:active:bg-white/10"
-              >
-                {s.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {showList &&
+        (bare ? (
+          <ul className="absolute inset-x-0 bottom-full mb-3 flex flex-col-reverse gap-2">
+            {suggestions.map((s) => (
+              <li key={`${s.lng},${s.lat},${s.label}`}>
+                <button
+                  type="button"
+                  // mousedown fires before the input's blur closes the list
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    select(s);
+                  }}
+                  className="glass flex w-full items-center gap-2 rounded-full px-4 py-3 text-left text-[15px] text-neutral-900 active:scale-[0.98] dark:text-neutral-100"
+                >
+                  <svg viewBox="0 0 24 24" className="size-4 shrink-0 text-red-500" aria-hidden="true">
+                    <path
+                      d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  <span className="truncate">{s.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="mt-2 overflow-hidden rounded-xl bg-white/70 dark:bg-white/5">
+            {suggestions.map((s) => (
+              <li key={`${s.lng},${s.lat},${s.label}`} className="border-b border-black/5 last:border-0 dark:border-white/10">
+                <button
+                  type="button"
+                  // mousedown fires before the input's blur closes the list
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    select(s);
+                  }}
+                  className="block w-full px-3 py-2.5 text-left text-[15px] text-neutral-900 active:bg-black/5 dark:text-neutral-100 dark:active:bg-white/10"
+                >
+                  {s.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ))}
       {message && <p className="mt-1.5 px-1 text-[13px] text-red-600 dark:text-red-400">{message}</p>}
     </div>
   );
