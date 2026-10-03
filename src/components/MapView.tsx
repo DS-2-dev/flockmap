@@ -27,6 +27,23 @@ maplibregl.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 const EMPTY: FeatureCollection = { type: "FeatureCollection", features: [] };
 const FIT_MARGIN = 48;
 
+// Dropped pin for the searched place (blue like the radius and route, so it doesn't read as a camera).
+function pinElement() {
+  const el = document.createElement("div");
+  el.innerHTML =
+    '<svg class="place-pin" viewBox="0 0 32 42" width="32" height="42" aria-hidden="true">' +
+    '<path d="M16 40.5S29.5 26.6 29.5 16a13.5 13.5 0 0 0-27 0C2.5 26.6 16 40.5 16 40.5Z" fill="#0a84ff" stroke="#fff" stroke-width="2"/>' +
+    '<circle cx="16" cy="16" r="5" fill="#fff"/></svg>';
+  return el;
+}
+
+// Start of a route: a small ringed dot.
+function startElement() {
+  const el = document.createElement("div");
+  el.className = "place-start";
+  return el;
+}
+
 export default function MapView({ cameras, outcome, focus, selected, onSelectCamera, padding }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -34,6 +51,8 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
   const onSelectRef = useRef(onSelectCamera);
   // What the map was last fitted to, so new matches alone don't move the view.
   const fittedRef = useRef<string | null>(null);
+  // Pins for the searched place(s), keyed by position so they only drop when the place changes.
+  const pinsRef = useRef<{ key: string; markers: maplibregl.Marker[] }>({ key: "", markers: [] });
   const [loaded, setLoaded] = useState(false);
   const [bearing, setBearing] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
@@ -157,6 +176,31 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
       set(SOURCE.route, EMPTY);
       set(SOURCE.area, EMPTY);
     }
+
+    const coords = outcome.mode === "route" ? outcome.route.geometry.coordinates : null;
+    const pins: { at: LngLat; start?: boolean }[] =
+      outcome.mode === "radius"
+        ? [{ at: outcome.center }]
+        : coords && coords.length > 1
+          ? [
+              { at: coords[0] as LngLat, start: true },
+              { at: coords[coords.length - 1] as LngLat },
+            ]
+          : [];
+    const key = JSON.stringify(pins);
+    if (pinsRef.current.key !== key) {
+      pinsRef.current.markers.forEach((m) => m.remove());
+      pinsRef.current = {
+        key,
+        markers: pins.map(({ at, start }) =>
+          new maplibregl.Marker(
+            start ? { element: startElement() } : { element: pinElement(), anchor: "bottom" },
+          )
+            .setLngLat(at)
+            .addTo(map),
+        ),
+      };
+    }
     // Padding changes with the sheet height; refitting on every drag would fight the user.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, outcome]);
@@ -189,13 +233,13 @@ export default function MapView({ cameras, outcome, focus, selected, onSelectCam
       {notice && (
         <div
           role="status"
-          className="glass absolute inset-x-16 top-[calc(var(--runway,0px)+max(0.75rem,env(safe-area-inset-top)))] z-10 rounded-2xl px-4 py-3 text-center text-[14px] text-neutral-900 sm:inset-x-auto sm:left-1/2 sm:w-96 sm:-translate-x-1/2 dark:text-neutral-100"
+          className="glass fixed inset-x-16 top-[max(0.75rem,env(safe-area-inset-top))] z-10 rounded-2xl px-4 py-3 text-center text-[14px] text-neutral-900 sm:inset-x-auto sm:left-1/2 sm:w-96 sm:-translate-x-1/2 dark:text-neutral-100"
         >
           {notice}
         </div>
       )}
       <div ref={containerRef} className="h-full w-full" />
-      <div className="pointer-events-none absolute right-3 top-[calc(var(--runway,0px)+max(0.75rem,env(safe-area-inset-top)))] flex flex-col items-center gap-2">
+      <div className="pointer-events-none fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] flex flex-col items-center gap-2">
         <div className="glass pointer-events-auto flex flex-col overflow-hidden rounded-2xl">
           <MapButton label="Show my location" onClick={locate}>
             <path d="M12 2 4 20l8-4 8 4z" transform="rotate(45 12 12)" />

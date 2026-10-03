@@ -54,12 +54,16 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
     null,
   );
 
-  // Height of the on-screen keyboard (iOS), so the floating bar sits above it.
-  const [keyboard, setKeyboard] = useState(0);
+  // The visible area (iOS shrinks and pans it for the keyboard), so the sheet can sit
+  // on top of the keyboard and never grow past the top of what's on screen.
+  const [keyboard, setKeyboard] = useState<{ height: number; top: number; bottom: number } | null>(null);
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => setKeyboard(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+    const update = () => {
+      const height = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboard(height > 0 ? { height, top: vv.offsetTop, bottom: vv.offsetTop + vv.height } : null);
+    };
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     return () => {
@@ -93,7 +97,14 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
     half: Math.round(viewport * 0.5),
     full: viewport - 56 - EDGE * 2,
   };
-  const visible = dragVisible ?? heights[detent];
+  // Full with the keyboard up (searching): pin the top to the top of what's on screen
+  // (iOS pans the view for the keyboard) and let the keyboard cover the bottom.
+  // Otherwise with the keyboard up the sheet sits on top of it, capped to the space left.
+  const underKeyboard = keyboard !== null && detent === "full" && dragVisible === null;
+  const visible = Math.min(
+    dragVisible ?? heights[detent],
+    keyboard ? keyboard.bottom - keyboard.top - EDGE * 2 : Infinity,
+  );
   const settled = heights[detent];
 
   useEffect(() => {
@@ -138,10 +149,13 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
     <section
       // Fixed so it stays above Safari's toolbar; Safari also tints the toolbar from it.
       // The pill doesn't clip, so address suggestions can float above it.
-      className={`glass fixed inset-x-3 flex flex-col ${pill ? "rounded-full" : "overflow-hidden rounded-[28px]"}`}
+      className={`fixed inset-x-3 flex flex-col ${pill ? "glass rounded-full" : "glass-thick overflow-hidden rounded-[28px]"}`}
       style={{
-        bottom: keyboard > 0 ? keyboard + EDGE : `max(${EDGE}px, env(safe-area-inset-bottom))`,
-        height: visible,
+        ...(underKeyboard
+          ? { top: keyboard.top + EDGE, height: window.innerHeight - keyboard.top - EDGE * 2 }
+          : keyboard
+            ? { top: keyboard.bottom - EDGE - visible, height: visible }
+            : { bottom: `max(${EDGE}px, env(safe-area-inset-bottom))`, height: visible }),
         transition: dragVisible === null ? "height 320ms cubic-bezier(0.2, 0.8, 0.2, 1)" : "none",
       }}
     >
@@ -157,13 +171,16 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
             <div className="h-1.5 w-10 rounded-full bg-black/20 dark:bg-white/25" />
           </div>
         )}
-        <div ref={headerRef} className={pill ? "px-1.5 py-1.5" : "px-4 pb-2"}>
+        <div ref={headerRef} className={pill ? "px-1 py-1" : "px-3 pb-2"}>
           {typeof header === "function" ? header(pill) : header}
         </div>
       </div>
       {!pill && (
-        <div ref={contentRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
-          <div className="pb-6">{children}</div>
+        <div ref={contentRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3">
+          {/* Room to scroll the last rows out from under the keyboard. */}
+          <div className="pb-4" style={underKeyboard ? { paddingBottom: keyboard.height + 16 } : undefined}>
+            {children}
+          </div>
         </div>
       )}
     </section>

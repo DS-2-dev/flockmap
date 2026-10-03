@@ -31,7 +31,7 @@ npm run dev                  # http://localhost:3000 (map at /map)
 
 1. Push this repo to GitHub.
 2. In Vercel: **Add New → Project → Import** the repo. Framework preset: Next.js.
-3. (Optional) **Settings → Environment Variables:** add `ORS_API_KEY`.
+3. **Settings → Environment Variables:** add `NEXT_PUBLIC_UGRC_API_KEY` (a UGRC *browser* key whose URL pattern matches the live site; see `.env.example`) and, optionally, `ORS_API_KEY`. Redeploy after adding them.
 4. Deploy. Every push to `main` redeploys.
 
 The GitHub Action `.github/workflows/refresh-cameras.yml` refreshes camera data daily and commits it, which triggers a redeploy. Run it manually from the repo's **Actions** tab if needed.
@@ -40,7 +40,7 @@ The GitHub Action `.github/workflows/refresh-cameras.yml` refreshes camera data 
 
 - `scripts/fetch-cameras.ts` queries Overpass for `surveillance:type=ALPR` + Flock Safety nodes and writes `public/data/us.geojson` and `utah.geojson`.
 - The map loads Utah first, then the full US set, clustered with MapLibre.
-- `/api/geocode` (Photon → Nominatim) and `/api/route` (OpenRouteService → OSRM → Valhalla) fall back automatically and are cached at Vercel's edge for 24 h.
+- Address search: Utah's UGRC geocoder (called from the browser when `NEXT_PUBLIC_UGRC_API_KEY` is set) for exact street addresses, plus `/api/geocode` (Photon → Nominatim, with the US Census geocoder added for street addresses) and `/api/route` (OpenRouteService → OSRM → Valhalla) fall back automatically and are cached at Vercel's edge for 24 h.
 - Cameras within 50 m of the route line count as "on the route".
 
 ## Data & services

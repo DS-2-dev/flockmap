@@ -34,7 +34,7 @@ function coneImage(size = 64) {
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext("2d")!;
   const c = size / 2;
-  ctx.fillStyle = "rgba(255, 59, 48, 0.3)";
+  ctx.fillStyle = "rgba(255, 59, 48, 0.35)";
   ctx.beginPath();
   ctx.moveTo(c, c);
   ctx.arc(c, c, c, -Math.PI / 2 - Math.PI / 6, -Math.PI / 2 + Math.PI / 6);
@@ -42,6 +42,17 @@ function coneImage(size = 64) {
   ctx.fill();
   return { width: size, height: size, data: ctx.getImageData(0, 0, size, size).data };
 }
+
+const HAS_DIRECTION: maplibregl.ExpressionSpecification = ["==", ["typeof", ["get", "direction"]], "number"];
+// View cones grow with zoom so they read from the neighborhood level down to the street.
+const CONE_LAYOUT: maplibregl.SymbolLayerSpecification["layout"] = {
+  "icon-image": CONE_IMAGE,
+  "icon-rotate": ["get", "direction"],
+  "icon-rotation-alignment": "map",
+  "icon-allow-overlap": true,
+  "icon-ignore-placement": true,
+  "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.5, 13, 0.7, 17, 1.1],
+};
 
 /** Add our sources and layers; called again whenever the basemap style changes. */
 export function addMapLayers(map: maplibregl.Map): void {
@@ -53,7 +64,7 @@ export function addMapLayers(map: maplibregl.Map): void {
     type: "geojson",
     data: EMPTY,
     cluster: true,
-    clusterMaxZoom: 12,
+    clusterMaxZoom: 10,
     clusterRadius: 50,
   });
   map.addSource(SOURCE.matched, { type: "geojson", data: EMPTY });
@@ -110,15 +121,9 @@ export function addMapLayers(map: maplibregl.Map): void {
     id: "camera-cones",
     type: "symbol",
     source: SOURCE.cameras,
-    minzoom: 13,
-    filter: ["all", ["!", ["has", "point_count"]], ["==", ["typeof", ["get", "direction"]], "number"]],
-    layout: {
-      "icon-image": CONE_IMAGE,
-      "icon-rotate": ["get", "direction"],
-      "icon-rotation-alignment": "map",
-      "icon-allow-overlap": true,
-      "icon-size": 0.6,
-    },
+    minzoom: 11,
+    filter: ["all", ["!", ["has", "point_count"]], HAS_DIRECTION],
+    layout: CONE_LAYOUT,
   });
   map.addLayer({
     id: "camera-points",
@@ -132,15 +137,23 @@ export function addMapLayers(map: maplibregl.Map): void {
       "circle-stroke-width": 1.5,
     },
   });
+  // Search results always show which way they face (there are few of them).
+  map.addLayer({
+    id: "matched-cones",
+    type: "symbol",
+    source: SOURCE.matched,
+    filter: HAS_DIRECTION,
+    layout: CONE_LAYOUT,
+  });
   map.addLayer({
     id: "matched-points",
     type: "circle",
     source: SOURCE.matched,
     paint: {
       "circle-color": COLORS.camera,
-      "circle-radius": 7,
+      "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 4, 14, 7],
       "circle-stroke-color": "#ffffff",
-      "circle-stroke-width": 2.5,
+      "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 10, 1.5, 14, 2.5],
     },
   });
 

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCameras } from "@/hooks/useCameras";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { fetchRoute, type ApiResult } from "@/lib/api";
@@ -84,6 +84,21 @@ export default function App() {
   useEffect(() => {
     if (desktop) return;
     requestAnimationFrame(() => window.scrollTo(0, RUNWAY));
+    // iOS scrolls the page to reveal a focused input, which pushes the top buttons
+    // off screen; the search bar already rides the keyboard, so hold the page still.
+    const typing = () => document.activeElement instanceof HTMLInputElement;
+    const pin = () => {
+      if (typing() && window.scrollY !== RUNWAY) window.scrollTo(0, RUNWAY);
+    };
+    const restore = () => requestAnimationFrame(() => window.scrollTo(0, RUNWAY));
+    window.addEventListener("scroll", pin);
+    document.addEventListener("focusin", pin);
+    document.addEventListener("focusout", restore);
+    return () => {
+      window.removeEventListener("scroll", pin);
+      document.removeEventListener("focusin", pin);
+      document.removeEventListener("focusout", restore);
+    };
   }, [desktop]);
 
   useEffect(() => {
@@ -126,12 +141,9 @@ export default function App() {
       <main
         ref={mainRef}
         className="relative w-full overflow-hidden"
-        // --runway offsets the floating controls below the strip that sits behind the status bar.
-        style={
-          (desktop
-            ? { height: "100dvh", "--runway": "0px" }
-            : { height: `calc(100lvh + ${RUNWAY + BLEED}px)`, "--runway": `${RUNWAY}px` }) as CSSProperties
-        }
+        // Floating controls are fixed to the screen, so nudges to the page's scroll
+        // (iOS bounce, Safari's toolbar) never shift them.
+        style={desktop ? { height: "100dvh" } : { height: `calc(100lvh + ${RUNWAY + BLEED}px)` }}
       >
         <MapView
           cameras={cameras}
@@ -144,7 +156,7 @@ export default function App() {
         <Link
           href="/"
           aria-label="ALPR Atlas home"
-          className="glass absolute left-3 top-[calc(var(--runway)+max(0.75rem,env(safe-area-inset-top)))] grid size-11 place-items-center rounded-2xl sm:hidden"
+          className="glass fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] grid size-11 place-items-center rounded-2xl sm:hidden"
         >
           <Image
             src="/logo.png"

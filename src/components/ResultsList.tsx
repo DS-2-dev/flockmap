@@ -21,20 +21,20 @@ export default function ResultsList({ outcome, selectedId, onSelect }: Props) {
 
   return (
     <div>
-      <h2 className="text-[22px] font-bold leading-tight text-neutral-900 dark:text-neutral-50">{heading}</h2>
-      {sub && <p className="mt-0.5 text-[15px] text-neutral-500">{sub}</p>}
+      <h2 className="text-base text-neutral-900 dark:text-neutral-50">{heading}</h2>
+      {sub && <p className="text-[13px] text-neutral-500">{sub}</p>}
       {outcome.matches.length > 0 && (
-        <ol className="mt-3 overflow-hidden rounded-2xl bg-white/80 dark:bg-white/[0.07]">
+        <ol className="mt-2 overflow-hidden rounded-2xl bg-white/80 dark:bg-white/[0.07]">
           {outcome.matches.map(({ camera, distanceMeters }, i) => (
             <li key={camera.properties.id} className="border-b border-black/5 last:border-0 dark:border-white/10">
               <button
                 type="button"
                 onClick={() => onSelect(camera)}
-                className={`flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-black/5 dark:active:bg-white/10 ${
+                className={`flex w-full items-center gap-2.5 px-2.5 py-2 text-left active:bg-black/5 dark:active:bg-white/10 ${
                   camera.properties.id === selectedId ? "bg-black/[0.04] dark:bg-white/[0.06]" : ""
                 }`}
               >
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-red-600 text-[13px] font-semibold text-white">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-red-600 text-[12px] font-semibold text-white">
                   {i + 1}
                 </span>
                 <span className="min-w-0 flex-1">

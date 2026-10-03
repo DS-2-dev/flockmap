@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { tryInOrder } from "./fallback";
-import { geocodeAttempts, photonLabel } from "./geocodeProviders";
+import { censusAddresses, censusLabel, geocodeAttempts, looksLikeStreetAddress, photonLabel } from "./geocodeProviders";
 
 function fakeFetch(handlers: Record<string, () => Response>): typeof fetch {
   return (async (input: RequestInfo | URL) => {
@@ -54,5 +54,34 @@ describe("geocodeAttempts", () => {
     const { value, provider } = await tryInOrder(geocodeAttempts("ogden", fetchFn), 1000);
     expect(provider).toBe("nominatim");
     expect(value).toEqual([{ label: "Ogden, Weber County, Utah, United States", lng: -111.97, lat: 41.223 }]);
+  });
+});
+
+describe("census geocoder", () => {
+  it("only runs for queries that start with a house number", () => {
+    expect(looksLikeStreetAddress("1566 S 350 E Kaysville")).toBe(true);
+    expect(looksLikeStreetAddress("12b Main St")).toBe(true);
+    expect(looksLikeStreetAddress("Kaysville")).toBe(false);
+    expect(looksLikeStreetAddress("150")).toBe(false);
+  });
+
+  it("title-cases the city", () => {
+    expect(censusLabel("1566 S 350 E, KAYSVILLE, UT, 84037")).toBe("1566 S 350 E, Kaysville, UT, 84037");
+    expect(censusLabel("845 E 3900 S, SALT LAKE CITY, UT, 84107")).toBe("845 E 3900 S, Salt Lake City, UT, 84107");
+  });
+
+  it("reads a query with no state as Utah and maps matches", async () => {
+    let requested = "";
+    const fetchFn = (async (input: RequestInfo | URL) => {
+      requested = String(input);
+      return json({
+        result: {
+          addressMatches: [{ matchedAddress: "1566 S 350 E, KAYSVILLE, UT, 84037", coordinates: { x: -111.93, y: 41.01 } }],
+        },
+      });
+    }) as typeof fetch;
+    const results = await censusAddresses("1566 S 350 E Kaysville", new AbortController().signal, fetchFn);
+    expect(decodeURIComponent(requested)).toContain("1566 S 350 E Kaysville, UT");
+    expect(results).toEqual([{ label: "1566 S 350 E, Kaysville, UT, 84037", lng: -111.93, lat: 41.01 }]);
   });
 });

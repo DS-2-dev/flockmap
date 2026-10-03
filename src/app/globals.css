@@ -59,9 +59,16 @@ body {
   display: none;
 }
 
-/* Required map attribution, kept to a small faint ⓘ under the map buttons. */
+/* Required map attribution: on phones it lives at the bottom of the search sheet
+   (SearchPanel), so the map has no floating ⓘ; on larger screens it's a small faint ⓘ
+   under the map buttons. */
+@media (max-width: 639px) {
+  .maplibregl-ctrl-attrib {
+    display: none;
+  }
+}
 .maplibregl-map .maplibregl-ctrl-top-right {
-  top: calc(var(--runway, 0px) + max(0.75rem, env(safe-area-inset-top)) + 96px);
+  top: calc(max(0.75rem, env(safe-area-inset-top)) + 96px);
 }
 .maplibregl-ctrl-attrib.maplibregl-compact {
   opacity: 0.2;
@@ -73,4 +80,40 @@ body {
   opacity: 1;
   transform: none;
   background: rgb(255 255 255 / 0.92);
+}
+
+/* Searched place markers (MapView). The pin drops in with a little bounce. */
+.place-pin {
+  display: block;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.3));
+  transform-origin: 50% 100%;
+  animation: pin-drop 420ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+@keyframes pin-drop {
+  from {
+    transform: translateY(-24px) scale(0.6);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .place-pin {
+    animation: none;
+  }
+}
+.place-start {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 4px solid #0a84ff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+/* Opened search sheet: denser glass so map labels never show through the text. */
+@utility glass-thick {
+  @apply glass;
+  background-color: rgb(250 250 252 / 0.94);
+  @media (prefers-color-scheme: dark) {
+    background-color: rgb(28 28 30 / 0.94);
+  }
 }
