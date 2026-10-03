@@ -10,7 +10,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
       <head>
-        {/* Adobe Fonts kit: argent-pixel-cf (display), t26-carbon (text). */}
+        {/* Adobe Fonts kit: t26-carbon (titles), host-grotesk (text). */}
         <link rel="stylesheet" href="https://use.typekit.net/yrs7pes.css" />
       </head>
       <body className="min-h-full flex flex-col">{children}</body>
