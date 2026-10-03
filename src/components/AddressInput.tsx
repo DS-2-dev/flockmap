@@ -13,13 +13,15 @@ type Props = {
   onChange: (place: Place | null) => void;
   onFocus?: () => void;
   icon?: "search" | "pin";
+  /** No filled background, for when the input itself is the floating search bar. */
+  bare?: boolean;
 };
 
 const MIN_QUERY_LENGTH = 3;
 // Matches the server cap in src/lib/server/limits.ts.
 const MAX_QUERY_LENGTH = 200;
 
-export default function AddressInput({ label, placeholder, value, onChange, onFocus, icon = "search" }: Props) {
+export default function AddressInput({ label, placeholder, value, onChange, onFocus, icon = "search", bare = false }: Props) {
   const [text, setText] = useState(value?.label ?? "");
   // Results remember the query they answer, so stale ones are never shown or picked.
   const [results, setResults] = useState<{ query: string; items: GeocodeResult[]; message: string | null }>({
@@ -58,7 +60,9 @@ export default function AddressInput({ label, placeholder, value, onChange, onFo
 
   return (
     <div>
-      <div className="flex h-11 items-center gap-2 rounded-xl bg-black/[0.06] px-3 dark:bg-white/10">
+      <div
+        className={`flex h-11 items-center gap-2 px-3 ${bare ? "" : "rounded-xl bg-black/[0.06] dark:bg-white/10"}`}
+      >
         <svg viewBox="0 0 24 24" className="size-[18px] shrink-0 text-neutral-500" aria-hidden="true">
           {icon === "search" ? (
             <path

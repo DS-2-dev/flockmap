@@ -36,7 +36,7 @@ export default function SearchPanel(props: Props) {
       ? outcome.matches.find((m) => m.camera.properties.id === selected.properties.id)
       : undefined;
 
-  const header = (
+  const header = (pill: boolean) => (
     <div className="flex flex-col gap-2">
       <Link href="/" className="mb-1 hidden items-center gap-2 font-display text-xl text-neutral-900 sm:flex dark:text-neutral-50">
         <Image src="/logo.png" alt="" width={512} height={512} className="size-6 dark:invert" />
@@ -49,8 +49,9 @@ export default function SearchPanel(props: Props) {
         value={from}
         onChange={props.onFromChange}
         onFocus={expand}
+        bare={pill}
       />
-      {(from || to) && (
+      {!pill && (from || to) && (
         <AddressInput
           key={`to:${to?.label ?? "empty"}`}
           label="Destination"

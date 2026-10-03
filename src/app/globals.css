@@ -21,13 +21,14 @@ html {
     background: #000;
   }
 }
-/* On the map, page background = basemap background, so Safari's bar tint matches. */
-html:has(.map-page) {
+/* On the map, page background = basemap background (Safari falls back to it for its bars). */
+html:has(.map-page),
+html:has(.map-page) body {
   background: #f2f3f0;
-  overflow: hidden;
 }
 @media (prefers-color-scheme: dark) {
-  html:has(.map-page) {
+  html:has(.map-page),
+  html:has(.map-page) body {
     background: #0c0c0c;
   }
 }

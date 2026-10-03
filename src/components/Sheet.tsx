@@ -9,7 +9,8 @@ type Props = {
   onDetentChange: (detent: Detent) => void;
   /** Visible height (phone) once the sheet settles, so the map can keep results clear of it. */
   onHeightChange?: (px: number) => void;
-  header: ReactNode;
+  /** Header content; receives whether the sheet is collapsed into the search pill. */
+  header: ReactNode | ((pill: boolean) => ReactNode);
   children: ReactNode;
   /** Changing this scrolls the content back to the top (e.g. when a camera is picked). */
   scrollKey?: string | number | null;
@@ -35,7 +36,7 @@ function DesktopCard({ header, children, scrollKey }: Props) {
   }, [scrollKey]);
   return (
     <section className="glass absolute left-4 top-4 flex max-h-[calc(100dvh-2rem)] w-96 flex-col overflow-hidden rounded-3xl">
-      <div className="p-4 pb-3">{header}</div>
+      <div className="p-4 pb-3">{typeof header === "function" ? header(false) : header}</div>
       <div ref={contentRef} className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         {children}
       </div>
@@ -71,8 +72,10 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
     contentRef.current?.scrollTo({ top: 0 });
   }, [scrollKey]);
 
+  // Collapsed, the sheet is just the floating search pill (no handle).
+  const pill = detent === "peek" && dragVisible === null;
   const heights = {
-    peek: HANDLE + headerHeight + EDGE,
+    peek: headerHeight + (pill ? 0 : HANDLE),
     half: Math.round(viewport * 0.5),
     full: viewport - 56 - EDGE * 2,
   };
@@ -119,36 +122,35 @@ function BottomSheet({ detent, onDetentChange, onHeightChange, header, children,
 
   return (
     <section
-      className="glass absolute inset-x-2 flex flex-col overflow-hidden rounded-[28px]"
+      // Fixed so it stays above Safari's toolbar; Safari also tints the toolbar from it.
+      className={`glass fixed inset-x-3 flex flex-col overflow-hidden ${pill ? "rounded-full" : "rounded-[28px]"}`}
       style={{
         bottom: `max(${EDGE}px, env(safe-area-inset-bottom))`,
-        height: heights.full,
-        transform: `translateY(${heights.full - visible}px)`,
-        transition: dragVisible === null ? "transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1)" : "none",
+        height: visible,
+        transition: dragVisible === null ? "height 320ms cubic-bezier(0.2, 0.8, 0.2, 1)" : "none",
       }}
     >
       <div
-        className="touch-none select-none"
+        className="shrink-0 touch-none select-none"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
       >
-        <div className="flex h-5 items-center justify-center">
-          <div className="h-1.5 w-10 rounded-full bg-black/20 dark:bg-white/25" />
-        </div>
-        <div ref={headerRef} className="px-4 pb-2">
-          {header}
+        {!pill && (
+          <div className="flex h-5 items-center justify-center">
+            <div className="h-1.5 w-10 rounded-full bg-black/20 dark:bg-white/25" />
+          </div>
+        )}
+        <div ref={headerRef} className={pill ? "px-1.5 py-1.5" : "px-4 pb-2"}>
+          {typeof header === "function" ? header(pill) : header}
         </div>
       </div>
-      <div
-        ref={contentRef}
-        className="min-h-0 overflow-y-auto overscroll-contain px-4"
-        // Nothing of the content peeks out under the search bar when collapsed.
-        style={{ maxHeight: Math.max(0, visible - HANDLE - headerHeight - EDGE) }}
-      >
-        <div className="pb-6">{children}</div>
-      </div>
+      {!pill && (
+        <div ref={contentRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
+          <div className="pb-6">{children}</div>
+        </div>
+      )}
     </section>
   );
 }
