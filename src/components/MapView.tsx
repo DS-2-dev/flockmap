@@ -27,6 +27,8 @@ export default function MapView({ cameras, outcome, focus }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [loaded, setLoaded] = useState(false);
+  // What the map was last fitted to, so new matches alone don't move the view.
+  const fittedRef = useRef<string | null>(null);
 
   useEffect(() => {
     const map = new maplibregl.Map({
@@ -73,13 +75,22 @@ export default function MapView({ cameras, outcome, focus }: MapViewProps) {
       };
       set(SOURCE.route, routeFc);
       set(SOURCE.area, EMPTY);
-      map.fitBounds(bbox(routeFc) as [number, number, number, number], { padding: fitPadding(map) });
+      const target = JSON.stringify(bbox(routeFc));
+      if (fittedRef.current !== target) {
+        fittedRef.current = target;
+        map.fitBounds(bbox(routeFc) as [number, number, number, number], { padding: fitPadding(map) });
+      }
     } else if (outcome.mode === "radius") {
       const area = circle(outcome.center, outcome.radiusMiles, { units: "miles", steps: 64 });
       set(SOURCE.route, EMPTY);
       set(SOURCE.area, { type: "FeatureCollection", features: [area] });
-      map.fitBounds(bbox(area) as [number, number, number, number], { padding: fitPadding(map) });
+      const target = JSON.stringify([outcome.center, outcome.radiusMiles]);
+      if (fittedRef.current !== target) {
+        fittedRef.current = target;
+        map.fitBounds(bbox(area) as [number, number, number, number], { padding: fitPadding(map) });
+      }
     } else {
+      if (outcome.mode === "idle") fittedRef.current = null;
       set(SOURCE.route, EMPTY);
       set(SOURCE.area, EMPTY);
     }

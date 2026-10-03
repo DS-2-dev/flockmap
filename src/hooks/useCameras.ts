@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import type { CameraScope } from "@/lib/search";
 import type { CameraCollection } from "@/lib/types";
 
 async function loadGeoJSON(url: string): Promise<CameraCollection | null> {
@@ -13,7 +14,7 @@ async function loadGeoJSON(url: string): Promise<CameraCollection | null> {
 
 // Utah first so the default view fills quickly, then the full US set replaces it.
 export function useCameras() {
-  const [cameras, setCameras] = useState<CameraCollection | null>(null);
+  const [data, setData] = useState<{ cameras: CameraCollection; scope: CameraScope } | null>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
@@ -22,11 +23,12 @@ export function useCameras() {
     (async () => {
       const utah = await loadGeoJSON("/data/utah.geojson");
       if (cancelled) return;
-      if (utah) setCameras(utah);
+      if (utah) setData((d) => (d?.scope === "us" ? d : { cameras: utah, scope: "utah" }));
       const us = await loadGeoJSON("/data/us.geojson");
       if (cancelled) return;
-      if (us) setCameras(us);
-      else if (!utah) setFailed(true);
+      // Without the US file, searches outside Utah can't be answered, so say so.
+      if (us) setData({ cameras: us, scope: "us" });
+      else setFailed(true);
     })();
     return () => {
       cancelled = true;
@@ -38,5 +40,5 @@ export function useCameras() {
     setAttempt((n) => n + 1);
   }, []);
 
-  return { cameras, failed, retry };
+  return { cameras: data?.cameras ?? null, scope: data?.scope ?? "utah", failed, retry };
 }

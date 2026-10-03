@@ -17,6 +17,6 @@ export function fetchSuggestions(query: string, signal?: AbortSignal): Promise<A
   return getJson(`/api/geocode?q=${encodeURIComponent(query)}`, signal);
 }
 
-export function fetchRoute(from: LngLat, to: LngLat): Promise<ApiResult<RouteResult>> {
-  return getJson(`/api/route?from=${formatLngLat(from)}&to=${formatLngLat(to)}`);
+export function fetchRoute(from: LngLat, to: LngLat, signal?: AbortSignal): Promise<ApiResult<RouteResult>> {
+  return getJson(`/api/route?from=${formatLngLat(from)}&to=${formatLngLat(to)}`, signal);
 }

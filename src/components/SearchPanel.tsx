@@ -13,14 +13,13 @@ type Props = {
   onToChange: (p: Place | null) => void;
   onRadiusChange: (r: RadiusMiles) => void;
   outcome: SearchOutcome;
-  searching: boolean;
   camerasFailed: boolean;
   onRetry: () => void;
   onSelectCamera: (lngLat: LngLat) => void;
 };
 
 export default function SearchPanel(props: Props) {
-  const { from, to, radiusMiles, outcome, searching } = props;
+  const { from, to, radiusMiles, outcome } = props;
   const singlePlace = Boolean(from) !== Boolean(to);
 
   return (
@@ -81,9 +80,9 @@ export default function SearchPanel(props: Props) {
         </button>
       )}
 
-      {searching && <p className="animate-pulse text-sm text-neutral-500">Checking for cameras…</p>}
-      {!searching && outcome.mode === "error" && <p className="text-sm text-red-600">{outcome.message}</p>}
-      {!searching && <ResultsList outcome={outcome} onSelect={props.onSelectCamera} />}
+      {outcome.mode === "pending" && <p className="animate-pulse text-sm text-neutral-500">{outcome.message}</p>}
+      {outcome.mode === "error" && <p className="text-sm text-red-600">{outcome.message}</p>}
+      <ResultsList outcome={outcome} onSelect={props.onSelectCamera} />
 
       <p className="text-[11px] text-neutral-500">
         Camera data is crowdsourced via{" "}
